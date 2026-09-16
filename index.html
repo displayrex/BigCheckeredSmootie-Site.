@@ -57,7 +57,7 @@ nav {
 /* HERO */
 #hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; position: relative; padding-top: 70px; }
 
-.hero-left { display: flex; flex-direction: column; justify-content: center; background-image: linear-gradient(rgba(13,13,13,.66), rgba(13,13,13,.66)), url('assets/IMG_9034.PNG'); background-size: cover; background-position: center 25%; background-repeat: no-repeat; padding: 80px 60px; border-right: 1px solid rgba(242,240,232,.08); position: relative; z-index: 2; }
+.hero-left { display: flex; flex-direction: column; justify-content: center; background-image: linear-gradient(rgba(13,13,13,.66), rgba(13,13,13,.66)), url('assets/IMG_9034.jpg'); background-size: cover; background-position: center 25%; background-repeat: no-repeat; padding: 80px 60px; border-right: 1px solid rgba(242,240,232,.08); position: relative; z-index: 2; }
 
 .hero-eyebrow { font-size: .62rem; letter-spacing: .4em; text-transform: uppercase; color: var(--y); margin-bottom: 28px; display: flex; align-items: center; gap: 12px; }
 .hero-eyebrow::before { content: ''; display: block; width: 30px; height: 1px; background: var(--y); }
@@ -188,8 +188,10 @@ input[type=range]::-webkit-slider-thumb:active { background: var(--r); }
 #songCard .song-apple:hover { color: var(--k); }
 
 /* MUSIC SECTION */
-#music { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padding: 100px 60px; }
-.music-inner { max-width: 1200px; margin: 0 auto; }
+#music { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padding: 100px 60px; position: relative; overflow: hidden; }
+.music-video-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+.music-video-overlay { position: absolute; inset: 0; z-index: 0; background: linear-gradient(rgba(13,13,13,.82), rgba(13,13,13,.88)); }
+.music-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
 .music-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 56px; }
 .music-title { font-family: 'Anton', sans-serif; font-size: clamp(3rem, 7vw, 6rem); line-height: .9; }
 .music-title span { -webkit-text-stroke: 2px var(--c); color: transparent; }
@@ -477,6 +479,10 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
 
 <!-- MUSIC -->
 <section id="music">
+  <video class="music-video-bg" autoplay muted loop playsinline poster="assets/thrillher-poster.jpg">
+    <source src="assets/thrillher-bg.mp4" type="video/mp4">
+  </video>
+  <div class="music-video-overlay"></div>
   <div class="music-inner">
     <div class="music-top reveal">
       <div>
