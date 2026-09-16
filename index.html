@@ -57,7 +57,7 @@ nav {
 /* HERO */
 #hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; position: relative; padding-top: 70px; }
 
-.hero-left { display: flex; flex-direction: column; justify-content: center; background-image: linear-gradient(rgba(13,13,13,.66), rgba(13,13,13,.66)), url('assets/IMG_9034.jpg'); background-size: cover; background-position: center 25%; background-repeat: no-repeat; padding: 80px 60px; border-right: 1px solid rgba(242,240,232,.08); position: relative; z-index: 2; }
+.hero-left { display: flex; flex-direction: column; justify-content: center; background-image: linear-gradient(rgba(13,13,13,.66), rgba(13,13,13,.66)), url('assets/IMG_9034.PNG'); background-size: cover; background-position: center 25%; background-repeat: no-repeat; padding: 80px 60px; border-right: 1px solid rgba(242,240,232,.08); position: relative; z-index: 2; }
 
 .hero-eyebrow { font-size: .62rem; letter-spacing: .4em; text-transform: uppercase; color: var(--y); margin-bottom: 28px; display: flex; align-items: center; gap: 12px; }
 .hero-eyebrow::before { content: ''; display: block; width: 30px; height: 1px; background: var(--y); }
@@ -747,15 +747,16 @@ document.getElementById('blendBtn').addEventListener('click', () => {
     document.getElementById('songVibes').textContent = song.vibes;
     document.getElementById('songAppleLink').href = song.apple;
 
-    // fetch real cover art for this track from Spotify and crossfade it into the section background
+    // fetch real, high-res cover art for this track via our serverless endpoint
+    // (calls Spotify's authenticated Web API server-side) and crossfade it into the section background
     const lab = document.getElementById('lab');
-    fetch(`https://open.spotify.com/oembed?url=https://open.spotify.com/track/${song.trackId}`)
+    fetch(`/api/spotify-cover?trackId=${song.trackId}`)
       .then(res => res.json())
       .then(data => {
-        if (!data.thumbnail_url) return;
+        if (!data.url) return;
         lab.classList.remove('bg-active');
         setTimeout(() => {
-          lab.style.setProperty('--lab-bg', `url("${data.thumbnail_url}")`);
+          lab.style.setProperty('--lab-bg', `url("${data.url}")`);
           lab.classList.add('bg-active');
         }, 600);
       })
