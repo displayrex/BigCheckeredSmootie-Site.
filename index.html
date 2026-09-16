@@ -1,4 +1,3 @@
-npm i @vercel/analytics
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,7 +57,7 @@ nav {
 /* HERO */
 #hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; position: relative; padding-top: 70px; }
 
-.hero-left { display: flex; flex-direction: column; justify-content: center; background-image: linear-gradient(rgba(13,13,13,.66), rgba(13,13,13,.66)), url('assets/IMG_9034.PNG'); background-size: cover; background-position: center 25%; background-repeat: no-repeat; padding: 80px 60px; border-right: 1px solid rgba(242,240,232,.08); position: relative; z-index: 2; }
+.hero-left { display: flex; flex-direction: column; justify-content: center; background-image: linear-gradient(rgba(13,13,13,.66), rgba(13,13,13,.66)), url('assets/IMG_9034.jpg'); background-size: cover; background-position: center 25%; background-repeat: no-repeat; padding: 80px 60px; border-right: 1px solid rgba(242,240,232,.08); position: relative; z-index: 2; }
 
 .hero-eyebrow { font-size: .62rem; letter-spacing: .4em; text-transform: uppercase; color: var(--y); margin-bottom: 28px; display: flex; align-items: center; gap: 12px; }
 .hero-eyebrow::before { content: ''; display: block; width: 30px; height: 1px; background: var(--y); }
@@ -103,12 +102,12 @@ nav {
 
 #manifesto { background-image: linear-gradient(rgba(13,13,13,.78), rgba(13,13,13,.78)), url('assets/IMG_6563.JPG'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed; color: var(--c); }
 .manifesto-inner { max-width: 1200px; margin: 0 auto; padding: 100px 60px; display: grid; grid-template-columns: 200px 1fr; gap: 80px; align-items: start; }
-.manifesto-label { font-size: .58rem; letter-spacing: .45em; text-transform: uppercase; color: rgba(13,13,13,.3); writing-mode: vertical-lr; transform: rotate(180deg); margin-top: 8px; }
+.manifesto-label { font-size: .58rem; letter-spacing: .45em; text-transform: uppercase; color: rgba(242,240,232,.4); writing-mode: vertical-lr; transform: rotate(180deg); margin-top: 8px; }
 .manifesto-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: clamp(2rem, 4.5vw, 3.8rem); line-height: 1.15; color:#e5e5e561; }
 .manifesto-text em { color: var(--r); font-style: normal; }
 .manifesto-footer { grid-column: 2; display: flex; align-items: center; gap: 20px; margin-top: 40px; }
-.manifesto-line { flex: 1; height: 1px; background: rgba(13,13,13,.12); }
-.manifesto-attr { font-size: .62rem; letter-spacing: .2em; color: rgba(13,13,13,.4); }
+.manifesto-line { flex: 1; height: 1px; background: rgba(242,240,232,.15); }
+.manifesto-attr { font-size: .62rem; letter-spacing: .2em; color: rgba(242,240,232,.5); }
 
 /* SHOWCASE GRID */
 #showcase { max-width: 1400px; margin: 0 auto; padding: 100px 40px; }
@@ -153,8 +152,10 @@ nav {
 .strip-card .s-sub { font-size: .58rem; letter-spacing: .1em; color: rgba(242,240,232,.3); margin-top: 4px; }
 
 /* LAB */
-#lab { background: var(--c); color: var(--k); padding: 100px 60px; }
-.lab-inner { max-width: 1100px; margin: 0 auto; }
+#lab { background: var(--c); color: var(--k); padding: 100px 60px; position: relative; overflow: hidden; }
+#lab::before { content: ''; position: absolute; inset: 0; z-index: 0; background-image: linear-gradient(rgba(242,240,232,.86), rgba(242,240,232,.86)), var(--lab-bg, none); background-size: cover; background-position: center; background-repeat: no-repeat; opacity: 0; transform: scale(1.08); transition: opacity .6s ease, transform 1.4s cubic-bezier(.16,1,.3,1); pointer-events: none; }
+#lab.bg-active::before { opacity: 1; transform: scale(1); }
+.lab-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
 .lab-eyebrow { font-size: .58rem; letter-spacing: .4em; color: var(--r); text-transform: uppercase; margin-bottom: 14px; }
 .lab-title { font-family: 'Anton', sans-serif; font-size: clamp(3rem, 7vw, 6rem); line-height: .9; margin-bottom: 56px; }
 .lab-title span { -webkit-text-stroke: 2px var(--k); color: transparent; }
@@ -255,10 +256,11 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
   .nav-links { gap: 18px; }
   .nav-ig { display: none; }
   #hero { grid-template-columns: 1fr; }
-  .hero-left { padding: 60px 28px; }
+  .hero-left { padding: 60px 28px; min-height: 70vh; }
   .hero-right { min-height: 280px; }
   .manifesto-inner { grid-template-columns: 1fr; gap: 20px; padding: 60px 28px; }
   .manifesto-label { writing-mode: horizontal-tb; transform: none; }
+  #manifesto { background-attachment: scroll; min-height: 70vh; display: flex; align-items: center; }
   #showcase { padding: 60px 20px; }
   .showcase-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
   .sc-1,.sc-2,.sc-3,.sc-4,.sc-5,.sc-6 { grid-column: span 1; grid-row: auto; min-height: 180px; }
@@ -268,6 +270,12 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
   .social-row { flex-direction: column; }
   #cta { padding: 60px 28px; }
   footer { flex-direction: column; align-items: flex-start; padding: 28px 20px; }
+}
+
+@media (max-width: 480px) {
+  .hero-left { min-height: 60vh; padding: 50px 22px; }
+  .hero-h1 { font-size: clamp(3.2rem, 14vw, 5rem); }
+  #manifesto { min-height: 55vh; }
 }
 </style>
 </head>
@@ -738,6 +746,20 @@ document.getElementById('blendBtn').addEventListener('click', () => {
 
     document.getElementById('songVibes').textContent = song.vibes;
     document.getElementById('songAppleLink').href = song.apple;
+
+    // fetch real cover art for this track from Spotify and crossfade it into the section background
+    const lab = document.getElementById('lab');
+    fetch(`https://open.spotify.com/oembed?url=https://open.spotify.com/track/${song.trackId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.thumbnail_url) return;
+        lab.classList.remove('bg-active');
+        setTimeout(() => {
+          lab.style.setProperty('--lab-bg', `url("${data.thumbnail_url}")`);
+          lab.classList.add('bg-active');
+        }, 600);
+      })
+      .catch(() => {});
 
     // re-trigger animation
     const card = document.getElementById('songCard');
