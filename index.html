@@ -88,6 +88,9 @@ nav {
 .sq-red   { background: var(--r); }
 .sq-yellow{ background: var(--y); }
 
+.hero-right-title { position: absolute; top: 60px; left: 50px; right: 50px; z-index: 2; pointer-events: none; filter: drop-shadow(0 6px 22px rgba(0,0,0,.6)); }
+.hero-right-title .hero-h1 { font-size: clamp(3.4rem, 7.2vw, 7rem); }
+
 .hero-right-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 50px; }
 
 .hero-handle {
@@ -261,6 +264,8 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
   #hero { grid-template-columns: 1fr; }
   .hero-left { padding: 60px 28px; min-height: 70vh; }
   .hero-right { min-height: 280px; }
+  .hero-right-title { top: 24px; left: 24px; right: 24px; }
+  .hero-right-title .hero-h1 { font-size: clamp(2rem, 9vw, 4rem); }
   .manifesto-inner { grid-template-columns: 1fr; gap: 20px; padding: 60px 28px; }
   .manifesto-label { writing-mode: horizontal-tb; transform: none; }
   #manifesto { background-attachment: scroll; min-height: 70vh; display: flex; align-items: center; }
@@ -277,7 +282,7 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
 
 @media (max-width: 480px) {
   .hero-left { min-height: 60vh; padding: 50px 22px; }
-  .hero-h1 { font-size: clamp(3.2rem, 14vw, 5rem); }
+  .hero-right-title .hero-h1 { font-size: clamp(2rem, 12vw, 3.6rem); }
   #manifesto { min-height: 55vh; }
 }
 </style>
@@ -323,12 +328,9 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
 <!-- HERO -->
 <section id="hero">
   <div class="hero-left reveal">
+    <div class="hero-handle floating">LELo,<br>The Tsar</div>
+    <div class="hero-tagline">@bigcheckeredsmoothie &nbsp;·&nbsp; Instagram</div>
     <div class="hero-eyebrow">Official home of LELo, The Tsar</div>
-    <h1 class="hero-h1">
-      <span class="line-fill">BIG</span>
-      <span class="line-stroke">CHECKERED</span>
-      <span class="line-accent">SMOOTHIE</span>
-    </h1>
     <p class="hero-meta">
       <strong>@bigcheckeredsmoothie</strong> — A universe built on bold patterns,
       bolder personality, and the most checkered existence on the internet.
@@ -342,9 +344,12 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
 
   <div class="hero-right">
     <div class="checker-canvas" id="checkerCanvas"></div>
-    <div class="hero-right-content">
-      <div class="hero-handle floating">LELo,<br>The Tsar</div>
-      <div class="hero-tagline">@bigcheckeredsmoothie &nbsp;·&nbsp; Instagram</div>
+    <div class="hero-right-title reveal">
+      <h1 class="hero-h1">
+        <span class="line-fill">BIG</span>
+        <span class="line-stroke">CHECKERED</span>
+        <span class="line-accent">SMOOTHIE</span>
+      </h1>
     </div>
   </div>
 </section>
