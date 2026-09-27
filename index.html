@@ -58,7 +58,7 @@ nav {
 /* HERO */
 #hero { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; position: relative; padding-top: 70px; }
 
-.hero-left { display: flex; flex-direction: column; justify-content: center; background-image: linear-gradient(rgba(13,13,13,.66), rgba(13,13,13,.66)), url('assets/IMG_9034.PNG'); background-size: cover; background-position: center 25%; background-repeat: no-repeat; padding: 80px 60px; border-right: 1px solid rgba(242,240,232,.08); position: relative; z-index: 2; }
+.hero-left { display: flex; flex-direction: column; justify-content: center; background-image: linear-gradient(rgba(13,13,13,.5), rgba(13,13,13,.5)), url('assets/IMG_9034.PNG'); background-size: cover; background-position: center 25%; background-repeat: no-repeat; padding: 80px 60px; border-right: 1px solid rgba(242,240,232,.08); position: relative; z-index: 2; }
 
 .hero-eyebrow { font-size: .62rem; letter-spacing: .4em; text-transform: uppercase; color: var(--y); margin-bottom: 28px; display: flex; align-items: center; gap: 12px; }
 .hero-eyebrow::before { content: ''; display: block; width: 30px; height: 1px; background: var(--y); }
@@ -91,12 +91,12 @@ nav {
 .hero-right-title { position: absolute; top: 60px; left: 50px; right: 50px; z-index: 2; pointer-events: none; filter: drop-shadow(0 6px 22px rgba(0,0,0,.6)); }
 .hero-right-title .hero-h1 { font-size: clamp(3.4rem, 7.2vw, 7rem); }
 
-.hero-right-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 50px; }
+.hero-right-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 50px; filter: drop-shadow(0 4px 16px rgba(0,0,0,.7)); }
 
 .hero-handle {
   font-family: 'Playfair Display', serif; font-style: italic;
   font-size: clamp(1.5rem, 3vw, 2.8rem);
-  color: var(--k); background: #ff0000e3;
+  color: var(--r); background: #0d0d0de3;
   padding: 12px 20px; display: inline-block; line-height: 1.1; margin-bottom: 16px;
 }
 .hero-tagline { font-size: .62rem; letter-spacing: .2em; text-transform: uppercase; color: rgb(7 7 7 / 80%);
@@ -330,16 +330,6 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
   <div class="hero-left reveal">
     <div class="hero-handle floating">LELo,<br>The Tsar</div>
     <div class="hero-tagline">@bigcheckeredsmoothie &nbsp;·&nbsp; Instagram</div>
-    <div class="hero-eyebrow">Official home of LELo, The Tsar</div>
-    <p class="hero-meta">
-      <strong>@bigcheckeredsmoothie</strong> — A universe built on bold patterns,
-      bolder personality, and the most checkered existence on the internet.
-      Music out now on Spotify &amp; Apple Music.
-    </p>
-    <div class="hero-ctas">
-      <a href="https://open.spotify.com/artist/3pihy4nJpAAhTgQJbn7awN" target="_blank" class="btn-solid">Stream Now</a>
-      <a href="#lab" class="btn-ghost">Enter The Lab</a>
-    </div>
   </div>
 
   <div class="hero-right">
@@ -350,6 +340,18 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
         <span class="line-stroke">CHECKERED</span>
         <span class="line-accent">SMOOTHIE</span>
       </h1>
+    </div>
+    <div class="hero-right-content">
+      <div class="hero-eyebrow">Official home of LELo, The Tsar</div>
+      <p class="hero-meta">
+        <strong>@bigcheckeredsmoothie</strong> — A universe built on bold patterns,
+        bolder personality, and the most checkered existence on the internet.
+        Music out now on Spotify &amp; Apple Music.
+      </p>
+      <div class="hero-ctas">
+        <a href="https://open.spotify.com/artist/3pihy4nJpAAhTgQJbn7awN" target="_blank" class="btn-solid">Stream Now</a>
+        <a href="#lab" class="btn-ghost">Enter The Lab</a>
+      </div>
     </div>
   </div>
 </section>
