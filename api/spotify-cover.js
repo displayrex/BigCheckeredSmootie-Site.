@@ -43,10 +43,17 @@ async function getAccessToken() {
 }
 
 module.exports = async (req, res) => {
-  const trackId = req.query.trackId;
+  const trackId = String(req.query.trackId || '');
 
-  if (!trackId) {
-    res.status(400).json({ error: 'Missing trackId query param' });
+  // Spotify track IDs are 22 base-62 characters. Rejecting anything else stops
+  // callers from steering the request to other Spotify API paths.
+  if (!/^[A-Za-z0-9]{22}$/.test(trackId)) {
+    res.status(400).json({ error: 'Invalid trackId' });
+    return;
+  }
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    res.status(405).json({ error: 'Method not allowed' });
     return;
   }
 
@@ -58,8 +65,8 @@ module.exports = async (req, res) => {
     });
 
     if (!trackRes.ok) {
-      const text = await trackRes.text();
-      res.status(trackRes.status).json({ error: `Spotify track request failed: ${text}` });
+      console.error('Spotify track request failed', trackRes.status, await trackRes.text());
+      res.status(trackRes.status === 404 ? 404 : 502).json({ error: 'Cover art is unavailable right now' });
       return;
     }
 
@@ -78,6 +85,7 @@ module.exports = async (req, res) => {
     res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=3600');
     res.status(200).json({ url: largest.url, width: largest.width, height: largest.height });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('spotify-cover error', err);
+    res.status(500).json({ error: 'Cover art is unavailable right now' });
   }
 };
