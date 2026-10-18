@@ -95,9 +95,10 @@ nav {
 
 .hero-handle {
   font-family: 'Playfair Display', serif; font-style: italic;
-  font-size: clamp(1.5rem, 3vw, 2.8rem);
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
   color: var(--r); background: #0d0d0d00;
-  padding: 12px 20px; display: inline-block; line-height: 1.1; margin-bottom: 16px;
+  padding: 12px 20px; display: block; line-height: 1.1; text-align: center;
+  position: absolute; top: 60px; left: 0; right: 0; margin: 0 auto; width: fit-content;
 }
 .hero-tagline { font-size: .62rem; letter-spacing: .2em; text-transform: uppercase; color: rgb(7 7 7 / 80%);
     background: #f5c842e6;}
@@ -263,6 +264,7 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
   .nav-ig { display: none; }
   #hero { grid-template-columns: 1fr; }
   .hero-left { padding: 60px 28px; min-height: 70vh; }
+  .hero-handle { top: 28px; }
   .hero-right { min-height: 280px; }
   .hero-right-title { top: 24px; left: 24px; right: 24px; }
   .hero-right-title .hero-h1 { font-size: clamp(2rem, 9vw, 4rem); }
