@@ -150,11 +150,11 @@ nav {
 #strip { overflow-x: auto; white-space: nowrap; border-top: 1px solid rgba(242,240,232,.07); border-bottom: 1px solid rgba(242,240,232,.07); scrollbar-width: none; padding: 48px 0; }
 #strip::-webkit-scrollbar { display: none; }
 .strip-inner { display: inline-flex; gap: 2px; padding: 0 40px; }
-.strip-card { width: 240px; height: 150px; flex-shrink: 0; display: inline-flex; flex-direction: column; justify-content: flex-end; padding: 18px 20px; border: 1px solid rgba(242,240,232,.06); transition: border-color .2s; white-space: normal; }
-.strip-card:hover { border-color: var(--y); }
-.strip-card .s-num { font-family: 'Anton', sans-serif; font-size: 2.6rem; color: rgba(242,240,232,.06); line-height: 1; margin-bottom: auto; }
-.strip-card .s-title { font-family: 'Anton', sans-serif; font-size: 1rem; letter-spacing: .03em; color: var(--c); line-height: 1; }
-.strip-card .s-sub { font-size: .58rem; letter-spacing: .1em; color: rgba(242,240,232,.3); margin-top: 4px; }
+.strip-card { --tile-bg: #161616; --tile-num: rgba(242,240,232,.06); --tile-ink: var(--c); width: 240px; height: 150px; flex-shrink: 0; display: inline-flex; flex-direction: column; justify-content: flex-end; padding: 18px 20px; background: var(--tile-bg); border: 1px solid rgba(242,240,232,.06); transition: border-color .2s, background-color .6s ease; white-space: normal; }
+.strip-card:hover { border-color: var(--tile-num); }
+.strip-card .s-num { font-family: 'Anton', sans-serif; font-size: 2.6rem; color: var(--tile-num); line-height: 1; margin-bottom: auto; transition: color .6s ease; }
+.strip-card .s-title { font-family: 'Anton', sans-serif; font-size: 1rem; letter-spacing: .03em; color: var(--tile-ink); line-height: 1; }
+.strip-card .s-sub { font-size: .58rem; letter-spacing: .1em; color: var(--tile-ink); opacity: .7; margin-top: 4px; }
 
 /* LAB */
 #lab { background: var(--c); color: var(--k); padding: 100px 60px; position: relative; overflow: hidden; }
@@ -642,21 +642,95 @@ const obs = new IntersectionObserver(entries => {
 revEls.forEach(el => obs.observe(el));
 
 // ── STRIP ──
+// Each tile takes its background from that song's cover art and its number
+// from a contrasting color in the same art. Colors for covers we have in
+// /assets were sampled offline; tiles with only a trackId are sampled live.
+// bg/num/ink: tile background, number color, title + subtitle color.
 const stripData = [
-  { num: '01', title: 'THE PATTERN', sub: 'Checker is a lifestyle' },
-  { num: '02', title: 'FIDDLE', sub: 'WHO I BE? · Track 1' },
-  { num: '03', title: 'THE THRONE', sub: 'One Tsar, no challengers' },
-  { num: '04', title: 'THRILLHER', sub: 'ft. C Fre$hco · 2025' },
-  { num: '05', title: 'HIGHWAY 777', sub: 'ft. over! · 3:39' },
-  { num: '06', title: 'CHECK MATE', sub: 'ft. over! · WHO I BE?' },
-  { num: '07', title: '2006 WAYNE', sub: 'Single · 2026' },
-  { num: '08', title: 'SMOOTH IT OUT', sub: 'ft. docent · 2025' },
-  { num: '09', title: 'BIRD CAGE', sub: '68K streams' },
-  { num: '10', title: 'THE REALM', sub: 'Borders undefined' },
+  { num: '01', title: 'THE PATTERN', sub: 'Checker is a lifestyle',   bg: '#F2F0E8', numColor: '#E8321A', ink: '#0D0D0D' },
+  { num: '02', title: 'FIDDLE', sub: 'WHO I BE? · Track 1',           bg: '#A52387', numColor: '#0B0A09', ink: '#F2F0E8' },
+  { num: '03', title: 'THE THRONE', sub: 'One Tsar, no challengers',  bg: '#F5C842', numColor: '#0D0D0D', ink: '#0D0D0D' },
+  { num: '04', title: 'THRILLHER', sub: 'ft. C Fre$hco · 2025',       bg: '#454F65', numColor: '#FC6C9C', ink: '#F2F0E8' },
+  { num: '05', title: 'HIGHWAY 777', sub: 'ft. over! · 3:39',         bg: '#CE5516', numColor: '#0C1808', ink: '#0D0D0D' },
+  { num: '06', title: 'CHECK MATE', sub: 'ft. over! · WHO I BE?',     bg: '#626CC1', numColor: '#170D30', ink: '#F2F0E8' },
+  { num: '07', title: '2006 WAYNE', sub: 'Single · 2026',             trackId: '0r85DaML4k5Kekxn70fwMd' },
+  { num: '08', title: 'SMOOTH IT OUT', sub: 'ft. docent · 2025',      bg: '#DDC34A', numColor: '#95353A', ink: '#0D0D0D' },
+  { num: '09', title: 'BIRD CAGE', sub: '68K streams',                trackId: '4F0kkEcSCvfEqYTmPqJFoC' },
+  { num: '10', title: 'THE REALM', sub: 'Borders undefined',          bg: '#E8321A', numColor: '#F2F0E8', ink: '#0D0D0D' },
 ];
+
+function relLum([r, g, b]) {
+  const ch = v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; };
+  return .2126 * ch(r) + .7152 * ch(g) + .0722 * ch(b);
+}
+function contrast(a, b) {
+  const [hi, lo] = [relLum(a), relLum(b)].sort((x, y) => y - x);
+  return (hi + .05) / (lo + .05);
+}
+const toHex = c => '#' + c.map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+const INK_DARK = [13, 13, 13], INK_LIGHT = [242, 240, 232];
+
+function setTileColors(card, bg, num, ink) {
+  card.style.setProperty('--tile-bg', bg);
+  card.style.setProperty('--tile-num', num);
+  card.style.setProperty('--tile-ink', ink);
+}
+
+// Downsample the cover, bucket its pixels, and pick the most prominent
+// saturated bucket as the background and the most contrasting bucket as the number.
+function paletteFromImage(img) {
+  const size = 40;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = size;
+  const ctx = cv.getContext('2d');
+  ctx.drawImage(img, 0, 0, size, size);
+  const px = ctx.getImageData(0, 0, size, size).data;
+  const buckets = new Map();
+  for (let i = 0; i < px.length; i += 4) {
+    const key = (px[i] >> 5) << 6 | (px[i + 1] >> 5) << 3 | (px[i + 2] >> 5);
+    const b = buckets.get(key) || { n: 0, r: 0, g: 0, b: 0 };
+    b.n++; b.r += px[i]; b.g += px[i + 1]; b.b += px[i + 2];
+    buckets.set(key, b);
+  }
+  const cols = [...buckets.values()].map(b => {
+    const c = [b.r / b.n, b.g / b.n, b.b / b.n];
+    const max = Math.max(...c) / 255, min = Math.min(...c) / 255, l = (max + min) / 2;
+    const sat = max === min ? 0 : (max - min) / (1 - Math.abs(2 * l - 1));
+    return { c, n: b.n, score: b.n * (.3 + sat) * (l < .12 || l > .9 ? .05 : 1) };
+  });
+  const bg = cols.reduce((a, b) => (b.score > a.score ? b : a)).c;
+  let num = cols.filter(x => x.n > 4).reduce((a, b) => (contrast(b.c, bg) > contrast(a.c, bg) ? b : a)).c;
+  const ink = contrast(INK_DARK, bg) >= contrast(INK_LIGHT, bg) ? INK_DARK : INK_LIGHT;
+  if (contrast(num, bg) < 3) num = ink;
+  return { bg: toHex(bg), num: toHex(num), ink: toHex(ink) };
+}
+
+function colorFromCover(card, trackId) {
+  fetch(`/api/spotify-cover?trackId=${trackId}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.url) return;
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const p = paletteFromImage(img);
+          setTileColors(card, p.bg, p.num, p.ink);
+        } catch (e) { /* canvas blocked by CORS: keep the default tile */ }
+      };
+      img.src = data.url;
+    })
+    .catch(() => {});
+}
+
 const strip = document.getElementById('stripInner');
 stripData.forEach(d => {
-  strip.innerHTML += `<div class="strip-card"><div class="s-num">${d.num}</div><div class="s-title">${d.title}</div><div class="s-sub">${d.sub}</div></div>`;
+  const card = document.createElement('div');
+  card.className = 'strip-card';
+  card.innerHTML = `<div class="s-num">${d.num}</div><div class="s-title">${d.title}</div><div class="s-sub">${d.sub}</div>`;
+  if (d.bg) setTileColors(card, d.bg, d.numColor, d.ink);
+  if (d.trackId) colorFromCover(card, d.trackId);
+  strip.appendChild(card);
 });
 
 // ── LAB ──
