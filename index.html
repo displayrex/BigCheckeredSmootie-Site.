@@ -645,22 +645,21 @@ const obs = new IntersectionObserver(entries => {
 revEls.forEach(el => obs.observe(el));
 
 // ── STRIP ──
-// Song tiles use their cover art as the background, with the number in a
-// contrasting color sampled from that art. Covers we have live in
-// /assets/strip (colors sampled offline); tiles with only a trackId fetch
-// their cover from Spotify and are sampled live. Tiles without a song keep
-// a flat brand color. bg/numColor/ink: fallback background, number, title color.
+// Song tiles use their Spotify cover art (fetched by trackId) as the
+// background, with the number in a contrasting color sampled from that art.
+// Tiles without a song keep a flat brand color.
+// bg/numColor/ink: flat tile background, number, title color.
 const stripData = [
-  { num: '01', title: 'THE PATTERN', sub: 'Checker is a lifestyle',   bg: '#F2F0E8', numColor: '#E8321A', ink: '#0D0D0D' },
-  { num: '02', title: 'FIDDLE', sub: 'WHO I BE? · Track 1',           bg: '#A52387', numColor: '#E890BC', ink: '#F2F0E8', art: 'assets/strip/02-fiddle.jpg' },
-  { num: '03', title: 'THE THRONE', sub: 'One Tsar, no challengers',  bg: '#F5C842', numColor: '#0D0D0D', ink: '#0D0D0D' },
-  { num: '04', title: 'THRILLHER', sub: 'ft. C Fre$hco · 2025',       bg: '#454F65', numColor: '#FC6C9C', ink: '#F2F0E8', art: 'assets/strip/04-thrillher.jpg' },
-  { num: '05', title: 'HIGHWAY 777', sub: 'ft. over! · 3:39',         bg: '#CE5516', numColor: '#E6E696', ink: '#0D0D0D', art: 'assets/strip/05-highway-777.jpg' },
-  { num: '06', title: 'CHECK MATE', sub: 'ft. over! · WHO I BE?',     bg: '#626CC1', numColor: '#B8C2FF', ink: '#F2F0E8', art: 'assets/strip/06-check-mate.jpg' },
-  { num: '07', title: '2006 WAYNE', sub: 'Single · 2026',             trackId: '0r85DaML4k5Kekxn70fwMd' },
-  { num: '08', title: 'SMOOTH IT OUT', sub: 'ft. docent · 2025',      bg: '#DDC34A', numColor: '#F2F0E8', ink: '#0D0D0D', art: 'assets/strip/08-smooth-it-out.jpg' },
-  { num: '09', title: 'BIRD CAGE', sub: '68K streams',                trackId: '4F0kkEcSCvfEqYTmPqJFoC' },
-  { num: '10', title: 'THE REALM', sub: 'Borders undefined',          bg: '#E8321A', numColor: '#F2F0E8', ink: '#0D0D0D' },
+  { num: '01', title: 'THE PATTERN', sub: 'Checker is a lifestyle', bg: '#F2F0E8', numColor: '#E8321A', ink: '#0D0D0D' },
+  { num: '02', title: 'FIDDLE', sub: 'WHO I BE? · Track 1',         trackId: '663zb6oRiGTK44d0cUQQWf' },
+  { num: '03', title: 'THE THRONE', sub: 'One Tsar, no challengers', bg: '#F5C842', numColor: '#0D0D0D', ink: '#0D0D0D' },
+  { num: '04', title: 'THRILLHER', sub: 'ft. C Fre$hco · 2025',     trackId: '0wXKPCrIvdq9LhVVCw0K3e' },
+  { num: '05', title: 'HIGHWAY 777', sub: 'ft. over! · 3:39',       trackId: '2jvrbNraViotwFeOXGEPil' },
+  { num: '06', title: 'CHECK MATE', sub: 'ft. over! · WHO I BE?',   trackId: '16TmI2m7cEAhmo8MMHdBC4' },
+  { num: '07', title: '2006 WAYNE', sub: 'Single · 2026',           trackId: '0r85DaML4k5Kekxn70fwMd' },
+  { num: '08', title: 'SMOOTH IT OUT', sub: 'ft. docent · 2025',    trackId: '3bVGktDAPcnjqigjL6gWjM' },
+  { num: '09', title: 'BIRD CAGE', sub: '68K streams',              trackId: '4F0kkEcSCvfEqYTmPqJFoC' },
+  { num: '10', title: 'THE REALM', sub: 'Borders undefined',        bg: '#E8321A', numColor: '#F2F0E8', ink: '#0D0D0D' },
 ];
 
 function relLum([r, g, b]) {
@@ -705,12 +704,24 @@ function paletteFromImage(img) {
     const c = [b.r / b.n, b.g / b.n, b.b / b.n];
     const max = Math.max(...c) / 255, min = Math.min(...c) / 255, l = (max + min) / 2;
     const sat = max === min ? 0 : (max - min) / (1 - Math.abs(2 * l - 1));
-    return { c, n: b.n, score: b.n * (.3 + sat) * (l < .12 || l > .9 ? .05 : 1) };
+    return { c, n: b.n, sat, score: b.n * (.3 + sat) * (l < .12 || l > .9 ? .05 : 1) };
   });
   const bg = cols.reduce((a, b) => (b.score > a.score ? b : a)).c;
-  let num = cols.filter(x => x.n > 4).reduce((a, b) => (contrast(b.c, bg) > contrast(a.c, bg) ? b : a)).c;
+  // the 240x150 tile shows the middle 62.5% of the square cover, and the number
+  // sits in its top-left corner, so contrast against that patch
+  const corner = [0, 0, 0];
+  const y0 = Math.round(size * .19), y1 = Math.round(size * .47), x1 = Math.round(size * .4);
+  for (let y = y0; y < y1; y++) for (let x = 0; x < x1; x++) {
+    const i = (y * size + x) * 4;
+    corner[0] += px[i]; corner[1] += px[i + 1]; corner[2] += px[i + 2];
+  }
+  corner.forEach((v, k) => { corner[k] = v / ((y1 - y0) * x1); });
+  // tiles are shaded dark at the top, so only light swatches qualify; favor saturated ones
+  const light = cols.filter(x => x.n > 4 && relLum(x.c) > .2);
+  const numScore = x => contrast(x.c, corner) * (.5 + x.sat);
+  let num = light.length ? light.reduce((a, b) => (numScore(b) > numScore(a) ? b : a)).c : INK_LIGHT;
   const ink = contrast(INK_DARK, bg) >= contrast(INK_LIGHT, bg) ? INK_DARK : INK_LIGHT;
-  if (contrast(num, bg) < 3) num = ink;
+  if (contrast(num, corner) < 3) num = INK_LIGHT;
   return { bg: toHex(bg), num: toHex(num), ink: toHex(ink) };
 }
 
@@ -739,7 +750,6 @@ stripData.forEach(d => {
   card.className = 'strip-card';
   card.innerHTML = `<div class="s-num">${d.num}</div><div class="s-title">${d.title}</div><div class="s-sub">${d.sub}</div>`;
   if (d.bg) setTileColors(card, d.bg, d.numColor, d.ink);
-  if (d.art) setTileArt(card, d.art);
   if (d.trackId) colorFromCover(card, d.trackId);
   strip.appendChild(card);
 });
