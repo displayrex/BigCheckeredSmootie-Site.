@@ -821,7 +821,17 @@ function paletteFromImage(img) {
   return { bg: toHex(bg), num: toHex(num), ink: toHex(ink) };
 }
 
-function artFromImage(card, url) {
+// cover art for a track via our serverless endpoint; each song can appear in
+// both the strip (twice) and the Blend, so share one request per track
+const coverRequests = {};
+function coverUrl(trackId) {
+  coverRequests[trackId] = coverRequests[trackId] ||
+    fetch(`/api/spotify-cover?trackId=${trackId}`).then(res => res.json()).then(data => data.url || null).catch(() => null);
+  return coverRequests[trackId];
+}
+
+// fallbackTrackId: if this image won't load, fetch the track's cover instead
+function artFromImage(card, url, fallbackTrackId) {
   setTileArt(card, url);
   const img = new Image();
   img.crossOrigin = 'anonymous';
@@ -831,16 +841,12 @@ function artFromImage(card, url) {
       setTileColors(card, p.bg, p.num, p.ink);
     } catch (e) { /* canvas blocked by CORS: keep the art, default number color */ }
   };
+  if (fallbackTrackId) img.onerror = () => colorFromCover(card, fallbackTrackId);
   img.src = url;
 }
 
-// each song appears twice in the looping strip, so share one request per track
-const coverRequests = {};
 function colorFromCover(card, trackId) {
-  coverRequests[trackId] = coverRequests[trackId] || fetch(`/api/spotify-cover?trackId=${trackId}`).then(res => res.json());
-  coverRequests[trackId]
-    .then(data => { if (data.url) artFromImage(card, data.url); })
-    .catch(() => {});
+  coverUrl(trackId).then(url => { if (url) artFromImage(card, url); });
 }
 
 const strip = document.getElementById('stripInner');
@@ -862,7 +868,7 @@ catalogReady.then(list => {
     card.querySelector('.s-sub').textContent = d.sub;
     const local = localArt[artKey(d.title)];
     if (local) artFromImage(card, local);
-    else if (d.artSmall) artFromImage(card, d.artSmall);
+    else if (d.artSmall) artFromImage(card, d.artSmall, d.trackId);
     else colorFromCover(card, d.trackId);
     strip.appendChild(card);
   });
@@ -994,6 +1000,7 @@ updateBlender();
 // a click still has something to play.
 let songs = shuffle(fallbackSongs.map(fromFallback));
 let nextSong = 0;
+let blendCount = 0;
 catalogReady.then(list => { songs = shuffle(list); nextSong = 0; });
 
 // ── BLEND BUTTON ──
@@ -1041,22 +1048,28 @@ document.getElementById('blendBtn').addEventListener('click', () => {
     document.getElementById('songVibes').textContent = song.vibes;
     document.getElementById('songAppleLink').href = song.apple;
 
-    // crossfade the track's cover into the section background; the catalog
-    // already carries it, otherwise fetch it via our serverless endpoint
+    // crossfade the track's cover into the section background; use the
+    // catalog's art when it loads, otherwise fetch it via our serverless endpoint
     const lab = document.getElementById('lab');
-    const cover = song.art
-      ? Promise.resolve({ url: song.art })
-      : fetch(`/api/spotify-cover?trackId=${song.trackId}`).then(res => res.json());
-    cover
-      .then(data => {
-        if (!data.url) return;
+    const thisBlend = ++blendCount;
+    const loads = url => new Promise(resolve => {
+      if (!url) return resolve(null);
+      const img = new Image();
+      img.onload = () => resolve(url);
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
+    loads(song.art)
+      .then(url => url || coverUrl(song.trackId).then(loads))
+      .then(url => {
+        // skip if another blend has started since
+        if (!url || thisBlend !== blendCount) return;
         lab.classList.remove('bg-active');
         setTimeout(() => {
-          lab.style.setProperty('--lab-bg', `url("${data.url}")`);
+          lab.style.setProperty('--lab-bg', `url("${url}")`);
           lab.classList.add('bg-active');
         }, 600);
-      })
-      .catch(() => {});
+      });
 
     // re-trigger animation
     const card = document.getElementById('songCard');
