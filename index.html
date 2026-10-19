@@ -192,14 +192,12 @@ input[type=range]::-webkit-slider-thumb:active { background: var(--r); }
 
 .lab-output { background: #EDEBE3; padding: 36px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
 /* BLENDER: each slider stacks a layer of fruit into the jar */
-.blender-stage { display: flex; justify-content: center; }
-.lab-grid > .blender-stage { background: #EDEBE3; padding: 24px 20px 4px; }
-.lab-grid > .blender-stage .blender { margin-bottom: 0; transform-origin: top center; }
-.blender { width: 170px; margin: 0 auto 20px; position: relative; transition: transform .085s; }
-.blender-lid { width: 118px; height: 12px; margin: 8px auto 0; background: var(--k); position: relative; }
-.blender-lid::before { content: ''; position: absolute; left: 50%; top: -8px; width: 26px; height: 8px; margin-left: -13px; background: var(--k); }
+.glass-svg { width: 110px; margin-bottom: 20px; }
+.blender { width: 170px; margin: 36px auto 0; position: relative; color: var(--c); transition: transform .085s; }
+.blender-lid { width: 118px; height: 12px; margin: 8px auto 0; background: currentColor; position: relative; }
+.blender-lid::before { content: ''; position: absolute; left: 50%; top: -8px; width: 26px; height: 8px; margin-left: -13px; background: currentColor; }
 .blender-jar { width: 132px; height: 190px; margin: 0 auto; position: relative; }
-.jar-fill { position: absolute; inset: 0; clip-path: polygon(0 0, 100% 0, 86% 100%, 14% 100%); background: rgba(13,13,13,.05); display: flex; flex-direction: column-reverse; overflow: hidden; }
+.jar-fill { position: absolute; inset: 0; clip-path: polygon(0 0, 100% 0, 86% 100%, 14% 100%); background: rgba(242,240,232,.08); display: flex; flex-direction: column-reverse; overflow: hidden; }
 .blend-layer { flex: none; height: 0; position: relative; background: var(--lc); box-shadow: inset 0 2px 0 rgba(255,255,255,.28); transition: height .55s cubic-bezier(.34,1.56,.64,1), background .7s ease; }
 .chunk { position: absolute; width: 11px; height: 11px; margin: -5px 0 0 -5px; background: var(--lc); border: 1.5px solid rgba(13,13,13,.35); opacity: 0; --ty: -230px; --s: 1;
   transform: translateY(var(--ty)) rotate(var(--r)) scale(var(--s)); transition: transform .5s cubic-bezier(.55,0,.8,.3), opacity .15s; transition-delay: var(--d); }
@@ -214,9 +212,9 @@ input[type=range]::-webkit-slider-thumb:active { background: var(--r); }
 .blender.spinning .blend-layer { animation: churn .18s ease-in-out infinite alternate; }
 @keyframes bladeSpin { 0% { transform: scaleX(1); } 50% { transform: scaleX(-.2); } 100% { transform: scaleX(1); } }
 @keyframes churn { from { filter: brightness(1); } to { filter: brightness(1.15) saturate(1.2); } }
-.blender-base { width: 124px; height: 48px; margin: 0 auto; background: var(--k); clip-path: polygon(7% 0, 93% 0, 100% 100%, 0 100%); position: relative; }
-.blender-base::before { content: ''; position: absolute; left: 10%; right: 10%; top: 8px; height: 8px; background: repeating-conic-gradient(var(--c) 0 25%, var(--k) 0 50%) 0 0 / 8px 8px; }
-.blender-dial { position: absolute; left: 50%; bottom: 7px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--c); }
+.blender-base { width: 124px; height: 48px; margin: 0 auto; background: currentColor; clip-path: polygon(7% 0, 93% 0, 100% 100%, 0 100%); position: relative; }
+.blender-base::before { content: ''; position: absolute; left: 10%; right: 10%; top: 8px; height: 8px; background: repeating-conic-gradient(var(--k) 0 25%, var(--c) 0 50%) 0 0 / 8px 8px; }
+.blender-dial { position: absolute; left: 50%; bottom: 7px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--k); }
 .blender-dial::after { content: ''; position: absolute; left: 50%; top: 2px; width: 2px; height: 6px; margin-left: -1px; background: var(--r); transform-origin: 1px 7px; transition: transform .3s; }
 .blender.spinning .blender-dial::after { transform: rotate(90deg); }
 @media (prefers-reduced-motion: reduce) { .chunk, .blend-layer { transition-duration: .01s; } .blender.spinning .blender-blade, .blender.spinning .blend-layer { animation: none; } }
@@ -496,23 +494,33 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
       <div class="lab-controls">
         <h3>CONFIGURE YOUR BLEND</h3>
         <div id="knobsContainer"></div>
-      </div>
-      <div class="lab-output">
-        <div class="blender-stage" id="blenderStage">
-        <div class="blender floating" id="blender" aria-hidden="true">
+        <div class="blender" id="blender" aria-hidden="true">
           <div class="blender-lid"></div>
           <div class="blender-jar">
             <div class="jar-fill" id="jarFill"></div>
             <svg class="blender-blade" viewBox="0 0 40 12"><rect x="0" y="4" width="40" height="4" fill="#0D0D0D"/><rect x="17" y="0" width="6" height="12" fill="#0D0D0D"/></svg>
             <svg class="jar-outline" viewBox="0 0 132 190" fill="none">
-              <polygon points="0,0 132,0 113.5,190 18.5,190" stroke="#0D0D0D" stroke-width="2.5"/>
-              <path d="M128 30 h22 v110 h-30" stroke="#0D0D0D" stroke-width="6"/>
-              <path d="M8 50 h10 M10 90 h8 M12 130 h8" stroke="#0D0D0D" stroke-width="1.5" opacity=".35"/>
+              <polygon points="0,0 132,0 113.5,190 18.5,190" stroke="currentColor" stroke-width="2.5"/>
+              <path d="M128 30 h22 v110 h-30" stroke="currentColor" stroke-width="6"/>
+              <path d="M8 50 h10 M10 90 h8 M12 130 h8" stroke="currentColor" stroke-width="1.5" opacity=".35"/>
             </svg>
           </div>
           <div class="blender-base"><div class="blender-dial"></div></div>
         </div>
-        </div>
+      </div>
+      <div class="lab-output">
+        <svg class="glass-svg floating" viewBox="0 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <clipPath id="glassClip">
+              <polygon points="12,0 88,0 78,170 22,170"/>
+            </clipPath>
+          </defs>
+          <polygon points="12,0 88,0 78,170 22,170" fill="rgba(13,13,13,.05)" stroke="#0D0D0D" stroke-width="2"/>
+          <rect id="fillRect" x="0" y="170" width="100" height="0" clip-path="url(#glassClip)" fill="#E8321A" opacity=".85" style="transition:all .7s cubic-bezier(.34,1.56,.64,1) .15s;"/>
+          <rect id="fill2" x="0" y="170" width="100" height="0" clip-path="url(#glassClip)" fill="#F2F0E8" opacity=".18" style="transition:all .7s cubic-bezier(.34,1.56,.64,1) .2s;"/>
+          <rect x="61" y="-18" width="7" height="115" rx="3" fill="#0D0D0D" transform="rotate(8 61 0)"/>
+          <polygon points="12,0 88,0 78,170 22,170" fill="none" stroke="#0D0D0D" stroke-width="2.5"/>
+        </svg>
         <div class="smoothie-result-name" id="resultName">THE TSAR BLEND</div>
         <div class="smoothie-result-desc" id="resultDesc">Adjust the sliders to craft your creation.</div>
         <button class="blend-action" id="blendBtn">⚡ BLEND IT</button>
@@ -908,18 +916,6 @@ const layers = ingredients.map(ing => {
   return { layer, chunks };
 });
 
-// on phones the panels stack, so lift the blender above the sliders to watch it fill while dragging
-const stage = document.getElementById('blenderStage');
-const stageHome = stage.parentNode;
-const labGrid = document.querySelector('.lab-grid');
-const narrow = matchMedia('(max-width: 960px)');
-function placeBlender() {
-  if (narrow.matches) labGrid.insertBefore(stage, labGrid.firstChild);
-  else stageHome.insertBefore(stage, stageHome.firstChild);
-}
-placeBlender();
-narrow.addEventListener('change', placeBlender);
-
 function setChunk(ch, on) {
   if (ch.on === on) return;
   ch.on = on;
@@ -948,12 +944,29 @@ function mixColor() {
   return t ? `rgb(${Math.round(r / t)},${Math.round(g / t)},${Math.round(b / t)})` : 'transparent';
 }
 
+// the blended jar drains into the cup, which fills to the size of the blend
+function pourIntoCup() {
+  const total = vals.reduce((a, b) => a + b, 0);
+  const h = Math.min(100, total / (ingredients.length * 80) * 100) * 1.7;
+  layers.forEach(l => { l.layer.style.height = '0px'; });
+  poured = true;
+  const fillRect = document.getElementById('fillRect');
+  const fill2    = document.getElementById('fill2');
+  fillRect.setAttribute('fill', mixColor());
+  fillRect.setAttribute('y', 170 - h);
+  fillRect.setAttribute('height', h);
+  fill2.setAttribute('y', 170 - h);
+  fill2.setAttribute('height', h * .35);
+}
+
+let poured = false;
 function updateBlender() {
   const total = vals.reduce((a, b) => a + b, 0);
   const pct = Math.min(100, total / (ingredients.length * 80) * 100);
 
-  // touching a dial un-blends the jar back into its layers
+  // touching a dial un-blends (or refills) the jar back into its layers
   blender.classList.remove('blended');
+  poured = false;
   const scale = JAR_H / Math.max(ingredients.length * 80, total);
   vals.forEach((v, i) => {
     layers[i].layer.style.height = Math.round(v * scale) + 'px';
@@ -990,19 +1003,24 @@ document.getElementById('blendBtn').addEventListener('click', () => {
   blending = true;
   const btn = document.getElementById('blendBtn');
   btn.textContent = '⚡ BLENDING...';
-  blender.style.animation = 'none';
-  blender.classList.add('spinning');
-
-  // shake while the blade runs, then settle into one blended color
-  const shakes = ['rotate(-6deg) scale(1.06)', 'rotate(6deg) scale(.95)', 'rotate(-4deg) scale(1.04)', 'rotate(3deg) scale(.98)'];
-  let s = 0;
-  const shaker = setInterval(() => { blender.style.transform = shakes[s++ % shakes.length]; }, 85);
+  // after a pour the jar is empty, so load it back up from the dials first
+  const refill = poured;
+  if (refill) updateBlender();
   setTimeout(() => {
-    clearInterval(shaker);
-    blender.classList.remove('spinning');
-    blender.classList.add('blended');
-    blender.style.transform = 'rotate(0)';
-    blender.style.animation = 'float 5s ease-in-out infinite';
+    blender.classList.add('spinning');
+    // shake while the blade runs, then settle into one blended color
+    const shakes = ['rotate(-6deg) scale(1.06)', 'rotate(6deg) scale(.95)', 'rotate(-4deg) scale(1.04)', 'rotate(3deg) scale(.98)'];
+    let s = 0;
+    const shaker = setInterval(() => { blender.style.transform = shakes[s++ % shakes.length]; }, 85);
+    setTimeout(() => {
+      clearInterval(shaker);
+      blender.classList.remove('spinning');
+      blender.classList.add('blended');
+      blender.style.transform = '';
+      setTimeout(pourIntoCup, 300);
+    }, 900);
+  }, refill ? 650 : 0);
+  setTimeout(() => {
     btn.textContent = '⚡ BLEND AGAIN';
     blending = false;
 
@@ -1045,7 +1063,7 @@ document.getElementById('blendBtn').addEventListener('click', () => {
     card.style.display = 'none';
     void card.offsetWidth;
     card.style.display = 'block';
-  }, 900);
+  }, (refill ? 650 : 0) + 1250);
 });
 </script>
 
