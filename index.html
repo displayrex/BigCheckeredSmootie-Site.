@@ -149,7 +149,7 @@ nav {
 /* HORIZONTAL STRIP */
 #strip { overflow: hidden; white-space: nowrap; border-top: 1px solid rgba(242,240,232,.07); border-bottom: 1px solid rgba(242,240,232,.07); scrollbar-width: none; padding: 48px 0; }
 #strip::-webkit-scrollbar { display: none; }
-.strip-inner { display: inline-flex; animation: tick 55s linear infinite; }
+.strip-inner { display: inline-flex; min-height: 150px; animation: tick 55s linear infinite; }
 #strip:hover .strip-inner { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { #strip { overflow-x: auto; } .strip-inner { animation: none; } }
 .strip-card { --tile-bg: #161616; --tile-num: rgba(242,240,232,.06); --tile-ink: var(--c); width: 240px; height: 150px; flex-shrink: 0; margin-right: 2px; display: inline-flex; flex-direction: column; justify-content: flex-end; padding: 18px 20px; background: var(--tile-bg); border: 1px solid rgba(242,240,232,.06); transition: border-color .2s, background-color .6s ease; white-space: normal; }
@@ -644,25 +644,69 @@ const obs = new IntersectionObserver(entries => {
 }, { threshold: .08 });
 revEls.forEach(el => obs.observe(el));
 
-// ── STRIP ──
-// Song tiles use their cover art as the background (Spotify art fetched by
-// trackId, or a local crop in /assets/strip), with the number in a
-// contrasting color sampled from that art.
-// Tiles without a song keep a flat brand color.
-// bg/numColor/ink: flat tile background, number, title color.
-const stripData = [
-  { num: '01', title: 'KRAKEN', sub: 'A boat that keeps going',  art: 'assets/strip/01-kraken.jpg' },
-  { num: '02', title: 'THE PATTERN', sub: 'Checker is a lifestyle', bg: '#F2F0E8', numColor: '#E8321A', ink: '#0D0D0D' },
-  { num: '03', title: 'FIDDLE', sub: 'WHO I BE? · Track 1',         trackId: '663zb6oRiGTK44d0cUQQWf' },
-  { num: '04', title: 'THE THRONE', sub: 'One Tsar, no challengers', bg: '#F5C842', numColor: '#0D0D0D', ink: '#0D0D0D' },
-  { num: '05', title: 'THRILLHER', sub: 'ft. C Fre$hco · 2025',     trackId: '0wXKPCrIvdq9LhVVCw0K3e' },
-  { num: '06', title: 'HIGHWAY 777', sub: 'ft. over! · 3:39',       trackId: '2jvrbNraViotwFeOXGEPil' },
-  { num: '07', title: 'CHECK MATE', sub: 'ft. over! · WHO I BE?',   trackId: '16TmI2m7cEAhmo8MMHdBC4' },
-  { num: '08', title: '2006 WAYNE', sub: 'Single · 2026',           trackId: '0r85DaML4k5Kekxn70fwMd' },
-  { num: '09', title: 'SMOOTH IT OUT', sub: 'ft. docent · 2025',    trackId: '3bVGktDAPcnjqigjL6gWjM' },
-  { num: '10', title: 'BIRD CAGE', sub: '68K streams',              trackId: '4F0kkEcSCvfEqYTmPqJFoC' },
-  { num: '11', title: 'THE REALM', sub: 'Borders undefined',        bg: '#E8321A', numColor: '#F2F0E8', ink: '#0D0D0D' },
+// ── CATALOG ──
+// Every music slot draws from LELo's whole Spotify catalog (albums, EPs and
+// singles) via /api/discography, reshuffled on each page load. If that
+// endpoint is unreachable the site falls back to this hand-picked list.
+// Hand-written vibes and Apple Music links still apply to these tracks
+// whenever they come up in the full catalog.
+const fallbackSongs = [
+  { title: 'FIDDLE',          feat: 'ft. over!',      album: 'WHO I BE? · 2025', trackId: '663zb6oRiGTK44d0cUQQWf', apple: 'https://music.apple.com/us/album/smooth-it-out-feat-docent/1833795731', vibes: 'Track 1. The opening statement. Sets the whole table.' },
+  { title: 'ThrillHER',       feat: 'ft. C Fre$hco',  album: 'WHO I BE? · 2025', trackId: '0wXKPCrIvdq9LhVVCw0K3e', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: 'Cold entry. Replayable. You\'ll be back for this one.' },
+  { title: 'SMOOTH IT OUT',   feat: 'ft. docent',     album: 'WHO I BE? · 2025', trackId: '3bVGktDAPcnjqigjL6gWjM', apple: 'https://music.apple.com/us/album/smooth-it-out-feat-docent/1833795731?i=1833795742', vibes: 'Checkered and smooth. The name delivers on every promise.' },
+  { title: 'HIGHWAY 777',     feat: 'ft. over!',      album: 'WHO I BE? · 2025', trackId: '2jvrbNraViotwFeOXGEPil', apple: 'https://music.apple.com/us/album/highway-777-feat-over/1833795731?i=1833795741',    vibes: '3:39. Longest cut on the project. The Tsar takes his time.' },
+  { title: 'CHECK MATE',      feat: 'ft. over!',      album: 'WHO I BE? · 2025', trackId: '16TmI2m7cEAhmo8MMHdBC4', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: 'The checker isn\'t just a pattern. It\'s a strategy. Game over.' },
+  { title: 'CREED',           feat: 'ft. over!',      album: 'WHO I BE? · 2025', trackId: '26NQvjLLyX6exRvR6tvIZv', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: 'A doctrine. Not just a song. Well — both.' },
+  { title: 'RAP SHEET',       feat: '',               album: 'WHO I BE? · 2025', trackId: '3YclXa2f4gGhmSizQ37S9O', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: '1:53. The tightest track on the record. Every second counts.' },
+  { title: 'SHOW OUT',        feat: 'ft. over!',      album: 'WHO I BE? · 2025', trackId: '71ee35F0V94LNZY7zsJxzn', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: 'No explanation needed. The title is the assignment.' },
+  { title: '2006 WAYNE',      feat: '',               album: 'Single · 2026',    trackId: '0r85DaML4k5Kekxn70fwMd', apple: 'https://music.apple.com/us/album/2006-wayne/1886980240?i=1886980248',       vibes: 'Latest drop. The Tsar enters 2026 with something to say.' },
+  { title: 'HORSEFACE KILLAH',feat: 'ft. over!',      album: 'Single · 2025',    trackId: '3PT2JJvIUeVlrQAkwBI8I0', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: 'The title alone is the statement. Track delivers in full.' },
+  { title: 'Bird Cage',       feat: '',               album: 'Earlier Work',     trackId: '4F0kkEcSCvfEqYTmPqJFoC', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: 'Most streamed. 68K plays and counting. The people chose this.' },
+  { title: 'Tit for Tat',     feat: '',               album: 'Earlier Work',     trackId: '6goSibdoE3VzK7WIZTxNuE', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: '37K streams. Second most played. The catalog runs deep.' },
 ];
+const songNotes = Object.fromEntries(fallbackSongs.map(s => [s.trackId, s]));
+const ARTIST_APPLE = 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585';
+// local art that should win over the Spotify cover, keyed by lowercase title
+// without any "(feat. ...)"
+const localArt = { kraken: 'assets/strip/01-kraken.jpg' };
+const artKey = title => title.toLowerCase().replace(/\s*[([].*$/, '');
+
+function shuffle(list) {
+  const a = [...list];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// one shape for both sources: title/sub for the strip tile, vibes/apple for the lab
+function fromSpotify(t) {
+  const note = songNotes[t.id];
+  const feat = t.feat.length ? `ft. ${t.feat.join(', ')}` : '';
+  const where = t.type === 'single' ? 'Single' : t.album;
+  return {
+    trackId: t.id,
+    // the featured artists are already in the sub line
+    title: t.name.replace(/\s*[([](feat|ft|with)\b.*?[)\]]/gi, ''),
+    sub: [feat || where, t.year].filter(Boolean).join(' · '),
+    art: t.art,
+    artSmall: t.artSmall,
+    vibes: note ? note.vibes : (t.type === 'single' ? `${t.year} single. Straight from the catalog.` : `From ${t.album}${t.year ? ` (${t.year})` : ''}. Track ${t.trackNumber}.`),
+    apple: note ? note.apple : ARTIST_APPLE,
+  };
+}
+const fromFallback = s => ({ trackId: s.trackId, title: s.title, sub: [s.feat, s.album].filter(Boolean).join(' · '), vibes: s.vibes, apple: s.apple });
+
+const catalogReady = fetch('/api/discography')
+  .then(res => (res.ok ? res.json() : Promise.reject(res.status)))
+  .then(data => data.tracks.map(fromSpotify))
+  .catch(() => fallbackSongs.map(fromFallback))
+  .then(shuffle);
+
+// ── STRIP ──
+// Song tiles use their cover art as the background, with the number in a
+// contrasting color sampled from that art.
 
 function relLum([r, g, b]) {
   const ch = v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; };
@@ -750,16 +794,28 @@ function colorFromCover(card, trackId) {
 }
 
 const strip = document.getElementById('stripInner');
-// render the tiles twice so the -50% scroll animation loops seamlessly
-[...stripData, ...stripData].forEach((d, i) => {
-  const card = document.createElement('div');
-  card.className = 'strip-card';
-  if (i >= stripData.length) card.setAttribute('aria-hidden', 'true');
-  card.innerHTML = `<div class="s-num">${d.num}</div><div class="s-title">${d.title}</div><div class="s-sub">${d.sub}</div>`;
-  if (d.bg) setTileColors(card, d.bg, d.numColor, d.ink);
-  if (d.art) artFromImage(card, d.art);
-  if (d.trackId) colorFromCover(card, d.trackId);
-  strip.appendChild(card);
+// cap the tile count so the loop stays a sensible length; the shuffle means
+// a reload surfaces different songs
+const STRIP_MAX = 20;
+catalogReady.then(list => {
+  const picks = list.slice(0, STRIP_MAX);
+  // keep the original pace of ~5s per tile however many tiles there are
+  strip.style.animationDuration = `${picks.length * 5}s`;
+  // render the tiles twice so the -50% scroll animation loops seamlessly
+  [...picks, ...picks].forEach((d, i) => {
+    const card = document.createElement('div');
+    card.className = 'strip-card';
+    if (i >= picks.length) card.setAttribute('aria-hidden', 'true');
+    card.innerHTML = '<div class="s-num"></div><div class="s-title"></div><div class="s-sub"></div>';
+    card.querySelector('.s-num').textContent = String(i % picks.length + 1).padStart(2, '0');
+    card.querySelector('.s-title').textContent = d.title.toUpperCase();
+    card.querySelector('.s-sub').textContent = d.sub;
+    const local = localArt[artKey(d.title)];
+    if (local) artFromImage(card, local);
+    else if (d.artSmall) artFromImage(card, d.artSmall);
+    else colorFromCover(card, d.trackId);
+    strip.appendChild(card);
+  });
 });
 
 // ── LAB ──
@@ -815,21 +871,10 @@ function updateGlass() {
 }
 updateGlass();
 
-// ── SONGS (real discography) ──
-const songs = [
-  { title: 'FIDDLE',          feat: 'ft. over!',      album: 'WHO I BE? · 2025', trackId: '663zb6oRiGTK44d0cUQQWf', apple: 'https://music.apple.com/us/album/smooth-it-out-feat-docent/1833795731', vibes: 'Track 1. The opening statement. Sets the whole table.' },
-  { title: 'ThrillHER',       feat: 'ft. C Fre$hco',  album: 'WHO I BE? · 2025', trackId: '0wXKPCrIvdq9LhVVCw0K3e', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: 'Cold entry. Replayable. You\'ll be back for this one.' },
-  { title: 'SMOOTH IT OUT',   feat: 'ft. docent',     album: 'WHO I BE? · 2025', trackId: '3bVGktDAPcnjqigjL6gWjM', apple: 'https://music.apple.com/us/album/smooth-it-out-feat-docent/1833795731?i=1833795742', vibes: 'Checkered and smooth. The name delivers on every promise.' },
-  { title: 'HIGHWAY 777',     feat: 'ft. over!',      album: 'WHO I BE? · 2025', trackId: '2jvrbNraViotwFeOXGEPil', apple: 'https://music.apple.com/us/album/highway-777-feat-over/1833795731?i=1833795741',    vibes: '3:39. Longest cut on the project. The Tsar takes his time.' },
-  { title: 'CHECK MATE',      feat: 'ft. over!',      album: 'WHO I BE? · 2025', trackId: '16TmI2m7cEAhmo8MMHdBC4', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: 'The checker isn\'t just a pattern. It\'s a strategy. Game over.' },
-  { title: 'CREED',           feat: 'ft. over!',      album: 'WHO I BE? · 2025', trackId: '26NQvjLLyX6exRvR6tvIZv', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: 'A doctrine. Not just a song. Well — both.' },
-  { title: 'RAP SHEET',       feat: '',               album: 'WHO I BE? · 2025', trackId: '3YclXa2f4gGhmSizQ37S9O', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: '1:53. The tightest track on the record. Every second counts.' },
-  { title: 'SHOW OUT',        feat: 'ft. over!',      album: 'WHO I BE? · 2025', trackId: '71ee35F0V94LNZY7zsJxzn', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: 'No explanation needed. The title is the assignment.' },
-  { title: '2006 WAYNE',      feat: '',               album: 'Single · 2026',    trackId: '0r85DaML4k5Kekxn70fwMd', apple: 'https://music.apple.com/us/album/2006-wayne/1886980240?i=1886980248',       vibes: 'Latest drop. The Tsar enters 2026 with something to say.' },
-  { title: 'HORSEFACE KILLAH',feat: 'ft. over!',      album: 'Single · 2025',    trackId: '3PT2JJvIUeVlrQAkwBI8I0', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: 'The title alone is the statement. Track delivers in full.' },
-  { title: 'Bird Cage',       feat: '',               album: 'Earlier Work',     trackId: '4F0kkEcSCvfEqYTmPqJFoC', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: 'Most streamed. 68K plays and counting. The people chose this.' },
-  { title: 'Tit for Tat',     feat: '',               album: 'Earlier Work',     trackId: '6goSibdoE3VzK7WIZTxNuE', apple: 'https://music.apple.com/us/artist/lelo-the-tsar/1797437585',              vibes: '37K streams. Second most played. The catalog runs deep.' },
-];
+// ── SONGS ──
+// until the full catalog arrives, a click still has something to play
+let songs = fallbackSongs.map(fromFallback);
+catalogReady.then(list => { songs = list; });
 let lastSong = -1;
 
 // ── BLEND BUTTON ──
@@ -866,11 +911,13 @@ document.getElementById('blendBtn').addEventListener('click', () => {
     document.getElementById('songVibes').textContent = song.vibes;
     document.getElementById('songAppleLink').href = song.apple;
 
-    // fetch real, high-res cover art for this track via our serverless endpoint
-    // (calls Spotify's authenticated Web API server-side) and crossfade it into the section background
+    // crossfade the track's cover into the section background; the catalog
+    // already carries it, otherwise fetch it via our serverless endpoint
     const lab = document.getElementById('lab');
-    fetch(`/api/spotify-cover?trackId=${song.trackId}`)
-      .then(res => res.json())
+    const cover = song.art
+      ? Promise.resolve({ url: song.art })
+      : fetch(`/api/spotify-cover?trackId=${song.trackId}`).then(res => res.json());
+    cover
       .then(data => {
         if (!data.url) return;
         lab.classList.remove('bg-active');

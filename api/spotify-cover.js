@@ -3,44 +3,7 @@
 // Uses the Client Credentials flow (no user login needed) so the
 // Client ID/Secret stay server-side and are never exposed to the browser.
 
-let cachedToken = null;
-let cachedTokenExpiry = 0;
-
-async function getAccessToken() {
-  const now = Date.now();
-  if (cachedToken && now < cachedTokenExpiry) {
-    return cachedToken;
-  }
-
-  const clientId = process.env.SPOTIFY_CLIENT_ID;
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    throw new Error('Missing SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET env vars');
-  }
-
-  const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-
-  const tokenRes = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': `Basic ${basicAuth}`,
-    },
-    body: 'grant_type=client_credentials',
-  });
-
-  if (!tokenRes.ok) {
-    const text = await tokenRes.text();
-    throw new Error(`Spotify token request failed: ${tokenRes.status} ${text}`);
-  }
-
-  const tokenData = await tokenRes.json();
-  cachedToken = tokenData.access_token;
-  // refresh a little early to be safe
-  cachedTokenExpiry = now + (tokenData.expires_in - 60) * 1000;
-  return cachedToken;
-}
+const { getAccessToken } = require('./_spotify');
 
 module.exports = async (req, res) => {
   const trackId = String(req.query.trackId || '');
