@@ -379,6 +379,11 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
   </div>
 </section>
 
+<!-- HORIZONTAL STRIP -->
+<div id="strip">
+  <div class="strip-inner" id="stripInner"></div>
+</div>
+
 <!-- SHOWCASE -->
 <section id="showcase">
   <div class="showcase-header reveal">
@@ -442,11 +447,6 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
     </div>
   </div>
 </section>
-
-<!-- HORIZONTAL STRIP -->
-<div id="strip">
-  <div class="strip-inner" id="stripInner"></div>
-</div>
 
 <!-- LAB -->
 <section id="lab">
@@ -872,10 +872,12 @@ function updateGlass() {
 updateGlass();
 
 // ── SONGS ──
-// until the full catalog arrives, a click still has something to play
-let songs = fallbackSongs.map(fromFallback);
-catalogReady.then(list => { songs = list; });
-let lastSong = -1;
+// The Blend button deals through its own shuffle of the whole catalog, so
+// every song plays once before any repeats; until the full catalog arrives,
+// a click still has something to play.
+let songs = shuffle(fallbackSongs.map(fromFallback));
+let nextSong = 0;
+catalogReady.then(list => { songs = shuffle(list); nextSong = 0; });
 
 // ── BLEND BUTTON ──
 let blending = false;
@@ -898,11 +900,15 @@ document.getElementById('blendBtn').addEventListener('click', () => {
     btn.textContent = '⚡ BLEND AGAIN';
     blending = false;
 
-    // pick song, no repeat
-    let idx;
-    do { idx = Math.floor(Math.random() * songs.length); } while (idx === lastSong && songs.length > 1);
-    lastSong = idx;
-    const song = songs[idx];
+    // deal the next song; reshuffle once the whole catalog has played,
+    // without repeating the last song first
+    if (nextSong >= songs.length) {
+      const last = songs[songs.length - 1];
+      songs = shuffle(songs);
+      if (songs.length > 1 && songs[0] === last) songs.push(songs.shift());
+      nextSong = 0;
+    }
+    const song = songs[nextSong++];
 
     // load Spotify embed (dark compact theme)
     document.getElementById('spotifyEmbed').src =
