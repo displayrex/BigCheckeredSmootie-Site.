@@ -88,11 +88,13 @@ nav {
 .sq-red   { background: var(--r); }
 .sq-yellow{ background: var(--y); }
 
-.hero-right-title { position: relative; flex: 1; min-height: 0; margin: 60px 50px 36px; container-type: size; z-index: 2; pointer-events: none; filter: drop-shadow(0 6px 22px rgba(0,0,0,.6)); }
+.hero-right-title { position: relative; flex: 1; min-height: 0; margin: 60px 50px 36px; container-type: size; z-index: 2; pointer-events: none; }
 /* title fills the whole space above the eyebrow: sized to the box, words spread top to bottom */
 .hero-right-title .hero-h1 { font-size: min(19cqw, 30cqh); height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
 /* staircase: BIG top left, CHECKERED centred, SMOOTHIE lower right */
 .hero-right-title .hero-h1 > span { width: fit-content; }
+/* each word casts its own hard offset shadow, plus a soft one to lift it off the board */
+.hero-right-title .hero-h1 > span { filter: drop-shadow(.07em .07em 0 rgba(13,13,13,.9)) drop-shadow(0 .12em .3em rgba(0,0,0,.45)); }
 .hero-right-title .hero-h1 .line-stroke { margin-left: auto; margin-right: auto; }
 .hero-right-title .hero-h1 .line-accent { margin-left: auto; }
 
