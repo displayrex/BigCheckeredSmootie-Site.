@@ -89,12 +89,12 @@ nav {
 .sq-yellow{ background: var(--y); }
 
 .hero-right-title { position: absolute; top: 60px; left: 50px; right: 50px; z-index: 2; pointer-events: none; filter: drop-shadow(0 6px 22px rgba(0,0,0,.6)); }
-.hero-right-title .hero-h1 { font-size: clamp(3.4rem, 6.4vw, 6.4rem); --step: .9em; }
-/* staircase: each word sits lower and further right than the one above */
+.hero-right-title .hero-h1 { font-size: clamp(3.4rem, 6.4vw, 6.4rem); }
+/* staircase: BIG top left, CHECKERED centred, SMOOTHIE lower right */
 .hero-right-title .hero-h1 > span { width: fit-content; }
-.hero-right-title .hero-h1 > span + span { margin-top: .16em; }
-.hero-right-title .hero-h1 .line-stroke { margin-left: var(--step); }
-.hero-right-title .hero-h1 .line-accent { margin-left: calc(var(--step) * 2); }
+.hero-right-title .hero-h1 > span + span { margin-top: .4em; }
+.hero-right-title .hero-h1 .line-stroke { margin-left: auto; margin-right: auto; }
+.hero-right-title .hero-h1 .line-accent { margin-left: auto; }
 
 .hero-right-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; padding: 50px; }
 /* translucent panels so the copy reads clearly while the checkerboard still shows through */
@@ -313,7 +313,7 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
   .hero-right { min-height: 280px; }
   .hero-right-title { top: 24px; left: 24px; right: 24px; }
   .hero-right-title .hero-h1 { font-size: clamp(2rem, 9vw, 4rem); }
-  .hero-right-content { padding: 250px 24px 40px; }
+  .hero-right-content { padding: 280px 24px 40px; }
   .manifesto-inner { grid-template-columns: 1fr; gap: 20px; padding: 60px 28px; }
   .manifesto-label { writing-mode: horizontal-tb; transform: none; }
   #manifesto { background-attachment: scroll; min-height: 70vh; display: flex; align-items: center; }
@@ -331,7 +331,7 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
 @media (max-width: 480px) {
   .hero-left { min-height: 60vh; padding: 50px 22px; }
   .hero-right-title .hero-h1 { font-size: clamp(2rem, 12vw, 3.6rem); }
-  .hero-right-content { padding-top: 215px; }
+  .hero-right-content { padding-top: 235px; }
   #manifesto { min-height: 55vh; }
 }
 </style>
