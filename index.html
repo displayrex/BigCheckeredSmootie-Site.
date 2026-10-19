@@ -80,7 +80,7 @@ nav {
 .btn-ghost:hover { border-color: var(--c); transform: translateY(-2px); }
 
 /* HERO RIGHT */
-.hero-right { position: relative; overflow: hidden; }
+.hero-right { position: relative; overflow: hidden; display: flex; flex-direction: column; }
 .checker-canvas { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(14, 1fr); }
 .sq { transition: background .4s; }
 .sq-light { background: var(--c); }
@@ -88,15 +88,17 @@ nav {
 .sq-red   { background: var(--r); }
 .sq-yellow{ background: var(--y); }
 
-.hero-right-title { position: absolute; top: 60px; left: 50px; right: 50px; z-index: 2; pointer-events: none; filter: drop-shadow(0 6px 22px rgba(0,0,0,.6)); }
-.hero-right-title .hero-h1 { font-size: clamp(3.4rem, 6.4vw, 6.4rem); }
+.hero-right-title { position: relative; flex: 1; min-height: 0; margin: 60px 50px 36px; container-type: size; z-index: 2; pointer-events: none; }
+/* title fills the whole space above the eyebrow: sized to the box, words spread top to bottom */
+.hero-right-title .hero-h1 { font-size: min(19cqw, 30cqh); height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
 /* staircase: BIG top left, CHECKERED centred, SMOOTHIE lower right */
 .hero-right-title .hero-h1 > span { width: fit-content; }
-.hero-right-title .hero-h1 > span + span { margin-top: .4em; }
+/* each word casts its own hard offset shadow, plus a soft one to lift it off the board */
+.hero-right-title .hero-h1 > span { filter: drop-shadow(.07em .07em 0 rgba(13,13,13,.9)) drop-shadow(0 .12em .3em rgba(0,0,0,.45)); }
 .hero-right-title .hero-h1 .line-stroke { margin-left: auto; margin-right: auto; }
 .hero-right-title .hero-h1 .line-accent { margin-left: auto; }
 
-.hero-right-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; padding: 50px; }
+.hero-right-content { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; padding: 0 50px 50px; }
 /* translucent panels so the copy reads clearly while the checkerboard still shows through */
 .hero-right-content .hero-eyebrow,
 .hero-right-content .hero-meta,
@@ -311,9 +313,8 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
   .hero-left { padding: 60px 28px; min-height: 70vh; }
   .hero-handle { top: 28px; }
   .hero-right { min-height: 280px; }
-  .hero-right-title { top: 24px; left: 24px; right: 24px; }
-  .hero-right-title .hero-h1 { font-size: clamp(2rem, 9vw, 4rem); }
-  .hero-right-content { padding: 280px 24px 40px; }
+  .hero-right-title { flex: none; height: 62vw; margin: 28px 24px 28px; }
+  .hero-right-content { padding: 0 24px 40px; }
   .manifesto-inner { grid-template-columns: 1fr; gap: 20px; padding: 60px 28px; }
   .manifesto-label { writing-mode: horizontal-tb; transform: none; }
   #manifesto { background-attachment: scroll; min-height: 70vh; display: flex; align-items: center; }
@@ -330,8 +331,7 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
 
 @media (max-width: 480px) {
   .hero-left { min-height: 60vh; padding: 50px 22px; }
-  .hero-right-title .hero-h1 { font-size: clamp(2rem, 12vw, 3.6rem); }
-  .hero-right-content { padding-top: 235px; }
+  .hero-right-title { height: 78vw; margin-top: 24px; }
   #manifesto { min-height: 55vh; }
 }
 </style>
