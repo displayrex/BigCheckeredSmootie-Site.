@@ -193,7 +193,7 @@ input[type=range]::-webkit-slider-thumb:active { background: var(--r); }
 .lab-output { background: #EDEBE3; padding: 36px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
 /* BLENDER: each slider stacks a layer of fruit into the jar */
 .glass-svg { width: 110px; margin-bottom: 20px; }
-.blender { width: 170px; margin: 36px auto 0; position: relative; color: var(--c); transition: transform .085s; }
+.blender { width: 170px; margin: 0 auto 32px; position: relative; color: var(--c); transition: transform .085s; }
 .blender-lid { width: 118px; height: 12px; margin: 8px auto 0; background: currentColor; position: relative; }
 .blender-lid::before { content: ''; position: absolute; left: 50%; top: -8px; width: 26px; height: 8px; margin-left: -13px; background: currentColor; }
 .blender-jar { width: 132px; height: 190px; margin: 0 auto; position: relative; }
@@ -492,8 +492,6 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
     <h2 class="lab-title reveal">TSAR'S <span>LAB</span></h2>
     <div class="lab-grid reveal">
       <div class="lab-controls">
-        <h3>CONFIGURE YOUR BLEND</h3>
-        <div id="knobsContainer"></div>
         <div class="blender" id="blender" aria-hidden="true">
           <div class="blender-lid"></div>
           <div class="blender-jar">
@@ -507,6 +505,8 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
           </div>
           <div class="blender-base"><div class="blender-dial"></div></div>
         </div>
+        <h3>CONFIGURE YOUR BLEND</h3>
+        <div id="knobsContainer"></div>
       </div>
       <div class="lab-output">
         <svg class="glass-svg floating" viewBox="0 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
