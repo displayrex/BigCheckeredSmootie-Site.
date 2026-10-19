@@ -645,21 +645,23 @@ const obs = new IntersectionObserver(entries => {
 revEls.forEach(el => obs.observe(el));
 
 // ── STRIP ──
-// Song tiles use their Spotify cover art (fetched by trackId) as the
-// background, with the number in a contrasting color sampled from that art.
+// Song tiles use their cover art as the background (Spotify art fetched by
+// trackId, or a local crop in /assets/strip), with the number in a
+// contrasting color sampled from that art.
 // Tiles without a song keep a flat brand color.
 // bg/numColor/ink: flat tile background, number, title color.
 const stripData = [
-  { num: '01', title: 'THE PATTERN', sub: 'Checker is a lifestyle', bg: '#F2F0E8', numColor: '#E8321A', ink: '#0D0D0D' },
-  { num: '02', title: 'FIDDLE', sub: 'WHO I BE? · Track 1',         trackId: '663zb6oRiGTK44d0cUQQWf' },
-  { num: '03', title: 'THE THRONE', sub: 'One Tsar, no challengers', bg: '#F5C842', numColor: '#0D0D0D', ink: '#0D0D0D' },
-  { num: '04', title: 'THRILLHER', sub: 'ft. C Fre$hco · 2025',     trackId: '0wXKPCrIvdq9LhVVCw0K3e' },
-  { num: '05', title: 'HIGHWAY 777', sub: 'ft. over! · 3:39',       trackId: '2jvrbNraViotwFeOXGEPil' },
-  { num: '06', title: 'CHECK MATE', sub: 'ft. over! · WHO I BE?',   trackId: '16TmI2m7cEAhmo8MMHdBC4' },
-  { num: '07', title: '2006 WAYNE', sub: 'Single · 2026',           trackId: '0r85DaML4k5Kekxn70fwMd' },
-  { num: '08', title: 'SMOOTH IT OUT', sub: 'ft. docent · 2025',    trackId: '3bVGktDAPcnjqigjL6gWjM' },
-  { num: '09', title: 'BIRD CAGE', sub: '68K streams',              trackId: '4F0kkEcSCvfEqYTmPqJFoC' },
-  { num: '10', title: 'THE REALM', sub: 'Borders undefined',        bg: '#E8321A', numColor: '#F2F0E8', ink: '#0D0D0D' },
+  { num: '01', title: 'KRAKEN', sub: 'A boat that keeps going',  art: 'assets/strip/01-kraken.jpg' },
+  { num: '02', title: 'THE PATTERN', sub: 'Checker is a lifestyle', bg: '#F2F0E8', numColor: '#E8321A', ink: '#0D0D0D' },
+  { num: '03', title: 'FIDDLE', sub: 'WHO I BE? · Track 1',         trackId: '663zb6oRiGTK44d0cUQQWf' },
+  { num: '04', title: 'THE THRONE', sub: 'One Tsar, no challengers', bg: '#F5C842', numColor: '#0D0D0D', ink: '#0D0D0D' },
+  { num: '05', title: 'THRILLHER', sub: 'ft. C Fre$hco · 2025',     trackId: '0wXKPCrIvdq9LhVVCw0K3e' },
+  { num: '06', title: 'HIGHWAY 777', sub: 'ft. over! · 3:39',       trackId: '2jvrbNraViotwFeOXGEPil' },
+  { num: '07', title: 'CHECK MATE', sub: 'ft. over! · WHO I BE?',   trackId: '16TmI2m7cEAhmo8MMHdBC4' },
+  { num: '08', title: '2006 WAYNE', sub: 'Single · 2026',           trackId: '0r85DaML4k5Kekxn70fwMd' },
+  { num: '09', title: 'SMOOTH IT OUT', sub: 'ft. docent · 2025',    trackId: '3bVGktDAPcnjqigjL6gWjM' },
+  { num: '10', title: 'BIRD CAGE', sub: '68K streams',              trackId: '4F0kkEcSCvfEqYTmPqJFoC' },
+  { num: '11', title: 'THE REALM', sub: 'Borders undefined',        bg: '#E8321A', numColor: '#F2F0E8', ink: '#0D0D0D' },
 ];
 
 function relLum([r, g, b]) {
@@ -725,22 +727,23 @@ function paletteFromImage(img) {
   return { bg: toHex(bg), num: toHex(num), ink: toHex(ink) };
 }
 
+function artFromImage(card, url) {
+  setTileArt(card, url);
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    try {
+      const p = paletteFromImage(img);
+      setTileColors(card, p.bg, p.num, p.ink);
+    } catch (e) { /* canvas blocked by CORS: keep the art, default number color */ }
+  };
+  img.src = url;
+}
+
 function colorFromCover(card, trackId) {
   fetch(`/api/spotify-cover?trackId=${trackId}`)
     .then(res => res.json())
-    .then(data => {
-      if (!data.url) return;
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      setTileArt(card, data.url);
-      img.onload = () => {
-        try {
-          const p = paletteFromImage(img);
-          setTileColors(card, p.bg, p.num, p.ink);
-        } catch (e) { /* canvas blocked by CORS: keep the art, default number color */ }
-      };
-      img.src = data.url;
-    })
+    .then(data => { if (data.url) artFromImage(card, data.url); })
     .catch(() => {});
 }
 
@@ -750,6 +753,7 @@ stripData.forEach(d => {
   card.className = 'strip-card';
   card.innerHTML = `<div class="s-num">${d.num}</div><div class="s-title">${d.title}</div><div class="s-sub">${d.sub}</div>`;
   if (d.bg) setTileColors(card, d.bg, d.numColor, d.ink);
+  if (d.art) artFromImage(card, d.art);
   if (d.trackId) colorFromCover(card, d.trackId);
   strip.appendChild(card);
 });
