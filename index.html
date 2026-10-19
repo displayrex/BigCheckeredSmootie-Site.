@@ -151,6 +151,9 @@ nav {
 #strip::-webkit-scrollbar { display: none; }
 .strip-inner { display: inline-flex; gap: 2px; padding: 0 40px; }
 .strip-card { --tile-bg: #161616; --tile-num: rgba(242,240,232,.06); --tile-ink: var(--c); width: 240px; height: 150px; flex-shrink: 0; display: inline-flex; flex-direction: column; justify-content: flex-end; padding: 18px 20px; background: var(--tile-bg); border: 1px solid rgba(242,240,232,.06); transition: border-color .2s, background-color .6s ease; white-space: normal; }
+.strip-card.has-art { --tile-num: var(--c); background: linear-gradient(to top, rgba(13,13,13,.88), rgba(13,13,13,.1) 60%, rgba(13,13,13,.45)), var(--tile-art) center / cover no-repeat, var(--tile-bg); }
+.strip-card.has-art .s-num { text-shadow: 0 2px 14px rgba(13,13,13,.35); }
+.strip-card.has-art .s-title,.strip-card.has-art .s-sub { color: var(--c); }
 .strip-card:hover { border-color: var(--tile-num); }
 .strip-card .s-num { font-family: 'Anton', sans-serif; font-size: 2.6rem; color: var(--tile-num); line-height: 1; margin-bottom: auto; transition: color .6s ease; }
 .strip-card .s-title { font-family: 'Anton', sans-serif; font-size: 1rem; letter-spacing: .03em; color: var(--tile-ink); line-height: 1; }
@@ -642,19 +645,20 @@ const obs = new IntersectionObserver(entries => {
 revEls.forEach(el => obs.observe(el));
 
 // ── STRIP ──
-// Each tile takes its background from that song's cover art and its number
-// from a contrasting color in the same art. Colors for covers we have in
-// /assets were sampled offline; tiles with only a trackId are sampled live.
-// bg/num/ink: tile background, number color, title + subtitle color.
+// Song tiles use their cover art as the background, with the number in a
+// contrasting color sampled from that art. Covers we have live in
+// /assets/strip (colors sampled offline); tiles with only a trackId fetch
+// their cover from Spotify and are sampled live. Tiles without a song keep
+// a flat brand color. bg/numColor/ink: fallback background, number, title color.
 const stripData = [
   { num: '01', title: 'THE PATTERN', sub: 'Checker is a lifestyle',   bg: '#F2F0E8', numColor: '#E8321A', ink: '#0D0D0D' },
-  { num: '02', title: 'FIDDLE', sub: 'WHO I BE? · Track 1',           bg: '#A52387', numColor: '#0B0A09', ink: '#F2F0E8' },
+  { num: '02', title: 'FIDDLE', sub: 'WHO I BE? · Track 1',           bg: '#A52387', numColor: '#E890BC', ink: '#F2F0E8', art: 'assets/strip/02-fiddle.jpg' },
   { num: '03', title: 'THE THRONE', sub: 'One Tsar, no challengers',  bg: '#F5C842', numColor: '#0D0D0D', ink: '#0D0D0D' },
-  { num: '04', title: 'THRILLHER', sub: 'ft. C Fre$hco · 2025',       bg: '#454F65', numColor: '#FC6C9C', ink: '#F2F0E8' },
-  { num: '05', title: 'HIGHWAY 777', sub: 'ft. over! · 3:39',         bg: '#CE5516', numColor: '#0C1808', ink: '#0D0D0D' },
-  { num: '06', title: 'CHECK MATE', sub: 'ft. over! · WHO I BE?',     bg: '#626CC1', numColor: '#170D30', ink: '#F2F0E8' },
+  { num: '04', title: 'THRILLHER', sub: 'ft. C Fre$hco · 2025',       bg: '#454F65', numColor: '#FC6C9C', ink: '#F2F0E8', art: 'assets/strip/04-thrillher.jpg' },
+  { num: '05', title: 'HIGHWAY 777', sub: 'ft. over! · 3:39',         bg: '#CE5516', numColor: '#E6E696', ink: '#0D0D0D', art: 'assets/strip/05-highway-777.jpg' },
+  { num: '06', title: 'CHECK MATE', sub: 'ft. over! · WHO I BE?',     bg: '#626CC1', numColor: '#B8C2FF', ink: '#F2F0E8', art: 'assets/strip/06-check-mate.jpg' },
   { num: '07', title: '2006 WAYNE', sub: 'Single · 2026',             trackId: '0r85DaML4k5Kekxn70fwMd' },
-  { num: '08', title: 'SMOOTH IT OUT', sub: 'ft. docent · 2025',      bg: '#DDC34A', numColor: '#95353A', ink: '#0D0D0D' },
+  { num: '08', title: 'SMOOTH IT OUT', sub: 'ft. docent · 2025',      bg: '#DDC34A', numColor: '#F2F0E8', ink: '#0D0D0D', art: 'assets/strip/08-smooth-it-out.jpg' },
   { num: '09', title: 'BIRD CAGE', sub: '68K streams',                trackId: '4F0kkEcSCvfEqYTmPqJFoC' },
   { num: '10', title: 'THE REALM', sub: 'Borders undefined',          bg: '#E8321A', numColor: '#F2F0E8', ink: '#0D0D0D' },
 ];
@@ -674,6 +678,11 @@ function setTileColors(card, bg, num, ink) {
   card.style.setProperty('--tile-bg', bg);
   card.style.setProperty('--tile-num', num);
   card.style.setProperty('--tile-ink', ink);
+}
+
+function setTileArt(card, url) {
+  card.style.setProperty('--tile-art', `url("${url}")`);
+  card.classList.add('has-art');
 }
 
 // Downsample the cover, bucket its pixels, and pick the most prominent
@@ -712,11 +721,12 @@ function colorFromCover(card, trackId) {
       if (!data.url) return;
       const img = new Image();
       img.crossOrigin = 'anonymous';
+      setTileArt(card, data.url);
       img.onload = () => {
         try {
           const p = paletteFromImage(img);
           setTileColors(card, p.bg, p.num, p.ink);
-        } catch (e) { /* canvas blocked by CORS: keep the default tile */ }
+        } catch (e) { /* canvas blocked by CORS: keep the art, default number color */ }
       };
       img.src = data.url;
     })
@@ -729,6 +739,7 @@ stripData.forEach(d => {
   card.className = 'strip-card';
   card.innerHTML = `<div class="s-num">${d.num}</div><div class="s-title">${d.title}</div><div class="s-sub">${d.sub}</div>`;
   if (d.bg) setTileColors(card, d.bg, d.numColor, d.ink);
+  if (d.art) setTileArt(card, d.art);
   if (d.trackId) colorFromCover(card, d.trackId);
   strip.appendChild(card);
 });
