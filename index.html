@@ -147,10 +147,12 @@ nav {
 .sc:hover::after { opacity: 1; transform: translate(3px,-3px); }
 
 /* HORIZONTAL STRIP */
-#strip { overflow-x: auto; white-space: nowrap; border-top: 1px solid rgba(242,240,232,.07); border-bottom: 1px solid rgba(242,240,232,.07); scrollbar-width: none; padding: 48px 0; }
+#strip { overflow: hidden; white-space: nowrap; border-top: 1px solid rgba(242,240,232,.07); border-bottom: 1px solid rgba(242,240,232,.07); scrollbar-width: none; padding: 48px 0; }
 #strip::-webkit-scrollbar { display: none; }
-.strip-inner { display: inline-flex; gap: 2px; padding: 0 40px; }
-.strip-card { --tile-bg: #161616; --tile-num: rgba(242,240,232,.06); --tile-ink: var(--c); width: 240px; height: 150px; flex-shrink: 0; display: inline-flex; flex-direction: column; justify-content: flex-end; padding: 18px 20px; background: var(--tile-bg); border: 1px solid rgba(242,240,232,.06); transition: border-color .2s, background-color .6s ease; white-space: normal; }
+.strip-inner { display: inline-flex; animation: tick 55s linear infinite; }
+#strip:hover .strip-inner { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { #strip { overflow-x: auto; } .strip-inner { animation: none; } }
+.strip-card { --tile-bg: #161616; --tile-num: rgba(242,240,232,.06); --tile-ink: var(--c); width: 240px; height: 150px; flex-shrink: 0; margin-right: 2px; display: inline-flex; flex-direction: column; justify-content: flex-end; padding: 18px 20px; background: var(--tile-bg); border: 1px solid rgba(242,240,232,.06); transition: border-color .2s, background-color .6s ease; white-space: normal; }
 .strip-card.has-art { --tile-num: var(--c); background: linear-gradient(to top, rgba(13,13,13,.88), rgba(13,13,13,.1) 60%, rgba(13,13,13,.45)), var(--tile-art) center / cover no-repeat, var(--tile-bg); }
 .strip-card.has-art .s-num { text-shadow: 0 2px 14px rgba(13,13,13,.35); }
 .strip-card.has-art .s-title,.strip-card.has-art .s-sub { color: var(--c); }
@@ -740,17 +742,21 @@ function artFromImage(card, url) {
   img.src = url;
 }
 
+// each song appears twice in the looping strip, so share one request per track
+const coverRequests = {};
 function colorFromCover(card, trackId) {
-  fetch(`/api/spotify-cover?trackId=${trackId}`)
-    .then(res => res.json())
+  coverRequests[trackId] = coverRequests[trackId] || fetch(`/api/spotify-cover?trackId=${trackId}`).then(res => res.json());
+  coverRequests[trackId]
     .then(data => { if (data.url) artFromImage(card, data.url); })
     .catch(() => {});
 }
 
 const strip = document.getElementById('stripInner');
-stripData.forEach(d => {
+// render the tiles twice so the -50% scroll animation loops seamlessly
+[...stripData, ...stripData].forEach((d, i) => {
   const card = document.createElement('div');
   card.className = 'strip-card';
+  if (i >= stripData.length) card.setAttribute('aria-hidden', 'true');
   card.innerHTML = `<div class="s-num">${d.num}</div><div class="s-title">${d.title}</div><div class="s-sub">${d.sub}</div>`;
   if (d.bg) setTileColors(card, d.bg, d.numColor, d.ink);
   if (d.art) artFromImage(card, d.art);
