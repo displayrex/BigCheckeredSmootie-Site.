@@ -207,7 +207,7 @@ input[type=range]::-webkit-slider-thumb:active { background: var(--r); }
 .lab-output { background: #EDEBE3; padding: 36px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
 /* BLENDER: each slider stacks a layer of fruit into the jar */
 .glass-svg { width: 110px; margin-bottom: 20px; }
-.blender { width: 170px; margin: 0 auto 32px; position: relative; color: var(--c); transition: transform .085s; }
+.blender { width: 170px; margin: 0 auto 20px; position: relative; color: var(--c); transition: transform .085s; }
 .blender-lid { width: 118px; height: 12px; margin: 8px auto 0; background: currentColor; position: relative; }
 .blender-lid::before { content: ''; position: absolute; left: 50%; top: -8px; width: 26px; height: 8px; margin-left: -13px; background: currentColor; }
 .blender-jar { width: 132px; height: 190px; margin: 0 auto; position: relative; }
@@ -237,6 +237,8 @@ input[type=range]::-webkit-slider-thumb:active { background: var(--r); }
 .blend-action { margin-top: 20px; font-family: 'Anton', sans-serif; font-size: 1.1rem; letter-spacing: .1em; background: var(--k); color: var(--c); border: none; padding: 14px 36px; cursor: pointer; transition: all .15s; width: 100%; }
 .blend-action:hover { background: var(--r); }
 .blend-action:active { transform: scale(.97); }
+.lab-controls .blend-action { display: block; max-width: 260px; margin: 0 auto 32px; background: var(--c); color: var(--k); }
+.lab-controls .blend-action:hover { background: var(--r); color: var(--c); }
 
 /* SONG CARD */
 #songCard { display: none; width: 100%; margin-top: 16px; animation: songPop .4s cubic-bezier(.34,1.56,.64,1); }
@@ -516,6 +518,7 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
           </div>
           <div class="blender-base"><div class="blender-dial"></div></div>
         </div>
+        <button class="blend-action" id="blendBtn">⚡ BLEND IT</button>
         <h3>CONFIGURE YOUR BLEND</h3>
         <div id="knobsContainer"></div>
       </div>
@@ -534,7 +537,6 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
         </svg>
         <div class="smoothie-result-name" id="resultName">THE TSAR BLEND</div>
         <div class="smoothie-result-desc" id="resultDesc">Adjust the sliders to craft your creation.</div>
-        <button class="blend-action" id="blendBtn">⚡ BLEND IT</button>
         <div id="songCard">
           <div class="song-label">THE TSAR RECOMMENDS</div>
           <iframe id="spotifyEmbed" src="" width="100%" height="152" frameBorder="0"
