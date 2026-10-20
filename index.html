@@ -237,6 +237,8 @@ input[type=range]::-webkit-slider-thumb:active { background: var(--r); }
 .blend-action { margin-top: 20px; font-family: 'Anton', sans-serif; font-size: 1.1rem; letter-spacing: .1em; background: var(--k); color: var(--c); border: none; padding: 14px 36px; cursor: pointer; transition: all .15s; width: 100%; }
 .blend-action:hover { background: var(--r); }
 .blend-action:active { transform: scale(.97); }
+.lab-controls .blend-action { display: block; margin: 28px 0 0; background: var(--c); color: var(--k); }
+.lab-controls .blend-action:hover { background: var(--r); color: var(--c); }
 
 /* SONG CARD */
 #songCard { display: none; width: 100%; margin-top: 16px; animation: songPop .4s cubic-bezier(.34,1.56,.64,1); }
@@ -518,6 +520,7 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
         </div>
         <h3>CONFIGURE YOUR BLEND</h3>
         <div id="knobsContainer"></div>
+        <button class="blend-action" id="blendBtn">⚡ BLEND IT</button>
       </div>
       <div class="lab-output">
         <svg class="glass-svg floating" viewBox="0 0 100 180" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -534,7 +537,6 @@ footer { background: var(--k); border-top: 1px solid rgba(242,240,232,.07); padd
         </svg>
         <div class="smoothie-result-name" id="resultName">THE TSAR BLEND</div>
         <div class="smoothie-result-desc" id="resultDesc">Adjust the sliders to craft your creation.</div>
-        <button class="blend-action" id="blendBtn">⚡ BLEND IT</button>
         <div id="songCard">
           <div class="song-label">THE TSAR RECOMMENDS</div>
           <iframe id="spotifyEmbed" src="" width="100%" height="152" frameBorder="0"
