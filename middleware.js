@@ -22,6 +22,24 @@ const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
 const MUTE_TOKEN = process.env.MUTE_TOKEN;
 const COOKIE = 'bcs_nolog';
 
+// Zero the host portion of an IP before storing it (privacy measure):
+// IPv4 -> last octet set to 0 (keeps the /24 network, drops the specific host);
+// IPv6 -> keep the first three groups (/48), drop the rest.
+function anonymizeIp(ip) {
+  if (!ip) return null;
+  if (ip.includes('.')) {
+    const p = ip.split('.');
+    if (p.length === 4) { p[3] = '0'; return p.join('.'); }
+    return ip;
+  }
+  if (ip.includes(':')) {
+    const kept = ip.split(':').slice(0, 3).filter(Boolean);
+    while (kept.length < 3) kept.push('0');
+    return kept.join(':') + '::';
+  }
+  return ip;
+}
+
 export default function middleware(request) {
   const url = new URL(request.url);
 
@@ -56,7 +74,7 @@ export default function middleware(request) {
       try { city = city ? decodeURIComponent(city) : null; } catch (_) {}
 
       const record = {
-        ip: ipAddress(request) || null,
+        ip: anonymizeIp(ipAddress(request)),
         path: url.pathname,
         ua: request.headers.get('user-agent') || null,
         ref: request.headers.get('referer') || null,
