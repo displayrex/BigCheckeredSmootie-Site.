@@ -4,6 +4,10 @@
 // Supabase over HTTPS. Fire-and-forget via waitUntil, so it never adds latency
 // and never breaks the page. Inserts use the publishable key against an
 // insert-only RLS policy on public.visits (the key can write, not read).
+//
+// Self-exclusion: visit /?__mute=<MUTE_TOKEN> once to drop a "don't log me"
+// cookie on this browser (survives dynamic IP changes, stores nothing about
+// you); /?__mute=off to resume. Muted visits are never recorded.
 
 import { next, ipAddress, geolocation, waitUntil } from '@vercel/functions';
 
@@ -15,19 +19,45 @@ export const config = {
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
+const MUTE_TOKEN = process.env.MUTE_TOKEN;
+const COOKIE = 'bcs_nolog';
 
 export default function middleware(request) {
+  const url = new URL(request.url);
+
+  // --- Self-exclusion toggle ---------------------------------------------
+  const mute = url.searchParams.get('__mute');
+  if (mute !== null) {
+    if (MUTE_TOKEN && mute === MUTE_TOKEN) {
+      return next({
+        headers: {
+          'set-cookie': `${COOKIE}=1; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax`,
+        },
+      });
+    }
+    if (mute === 'off') {
+      return next({
+        headers: {
+          'set-cookie': `${COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`,
+        },
+      });
+    }
+  }
+  const cookie = request.headers.get('cookie') || '';
+  const muted = new RegExp(`(?:^|;\\s*)${COOKIE}=1(?:;|$)`).test(cookie);
+
+  // --- Visit logging ------------------------------------------------------
   try {
     const accept = request.headers.get('accept') || '';
-    const ok = request.method === 'GET' && accept.includes('text/html');
-    if (ok && SUPABASE_URL && SUPABASE_KEY) {
+    const loggable = request.method === 'GET' && accept.includes('text/html');
+    if (loggable && !muted && SUPABASE_URL && SUPABASE_KEY) {
       const geo = geolocation(request);
       let city = geo.city || null;
       try { city = city ? decodeURIComponent(city) : null; } catch (_) {}
 
       const record = {
         ip: ipAddress(request) || null,
-        path: new URL(request.url).pathname,
+        path: url.pathname,
         ua: request.headers.get('user-agent') || null,
         ref: request.headers.get('referer') || null,
         country: geo.country || null,
@@ -50,8 +80,6 @@ export default function middleware(request) {
           keepalive: true,
         })
           .then((r) => {
-            // Lightweight logging so the first live visits are verifiable in
-            // Vercel runtime logs. Ask me to silence the success line later.
             if (r.ok) console.log('visit-log ok', record.country || '?', record.path);
             else console.error('visit-log insert failed', r.status);
           })
