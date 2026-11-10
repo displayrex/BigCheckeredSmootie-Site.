@@ -1,23 +1,26 @@
 // middleware.js — Edge Middleware for bigcheckeredsmoothie.com
 //
-// Runs on page navigations (not assets or /api) and records each visit:
-// IP, geo (country/region/city/lat/lon), path, user-agent, referer, timestamp.
-// It fire-and-forgets the record to /api/log (which writes it to MongoDB) via
-// waitUntil, so logging never adds latency and never breaks the page.
+// Records each page visit (IP, geo, path, user-agent, referer) straight into
+// Supabase over HTTPS. Fire-and-forget via waitUntil, so it never adds latency
+// and never breaks the page. Inserts use the publishable key against an
+// insert-only RLS policy on public.visits (the key can write, not read).
 
 import { next, ipAddress, geolocation, waitUntil } from '@vercel/functions';
 
 export const config = {
-  // Match everything EXCEPT /api/*, /assets/*, and any path with a dot
-  // (static files: .png/.js/.css/...). For this site that's effectively "/".
+  // Match page navigations only — skip /api/*, /assets/*, and any path with a
+  // dot (static files). For this site that's effectively just "/".
   matcher: ['/((?!api/|assets/|.*\\.).*)'],
 };
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
 
 export default function middleware(request) {
   try {
     const accept = request.headers.get('accept') || '';
-    // Only count real page loads (HTML document requests).
-    if (request.method === 'GET' && accept.includes('text/html')) {
+    const ok = request.method === 'GET' && accept.includes('text/html');
+    if (ok && SUPABASE_URL && SUPABASE_KEY) {
       const geo = geolocation(request);
       let city = geo.city || null;
       try { city = city ? decodeURIComponent(city) : null; } catch (_) {}
@@ -30,27 +33,33 @@ export default function middleware(request) {
         country: geo.country || null,
         region: geo.countryRegion || null, // ISO subdivision, not Vercel edge region
         city,
-        lat: geo.latitude || null,
-        lon: geo.longitude || null,
-        ts: new Date().toISOString(),
+        lat: geo.latitude ? Number(geo.latitude) : null,
+        lon: geo.longitude ? Number(geo.longitude) : null,
       };
 
-      const logUrl = new URL('/api/log', request.url);
       waitUntil(
-        fetch(logUrl, {
+        fetch(`${SUPABASE_URL}/rest/v1/visits`, {
           method: 'POST',
           headers: {
+            apikey: SUPABASE_KEY,
+            authorization: `Bearer ${SUPABASE_KEY}`,
             'content-type': 'application/json',
-            'x-log-secret': process.env.LOG_SECRET || '',
+            prefer: 'return=minimal',
           },
           body: JSON.stringify(record),
-          // keepalive helps the request survive the edge invocation ending
           keepalive: true,
-        }).catch(() => {}) // observability must never take the site down
+        })
+          .then((r) => {
+            // Lightweight logging so the first live visits are verifiable in
+            // Vercel runtime logs. Ask me to silence the success line later.
+            if (r.ok) console.log('visit-log ok', record.country || '?', record.path);
+            else console.error('visit-log insert failed', r.status);
+          })
+          .catch((e) => console.error('visit-log error', String(e)))
       );
     }
   } catch (_) {
-    // Swallow everything.
+    // Observability must never take the site down.
   }
   return next();
 }
