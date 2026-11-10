@@ -21,6 +21,9 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
 const MUTE_TOKEN = process.env.MUTE_TOKEN;
 const COOKIE = 'bcs_nolog';
+// Full visitor IPs are stored by default (for abuse/security review). Set the
+// env var ANONYMIZE_IP=1 to truncate instead (IPv4 /24, IPv6 /48).
+const ANONYMIZE_IP = process.env.ANONYMIZE_IP === '1';
 
 // Zero the host portion of an IP before storing it (privacy measure):
 // IPv4 -> last octet set to 0 (keeps the /24 network, drops the specific host);
@@ -72,9 +75,10 @@ export default function middleware(request) {
       const geo = geolocation(request);
       let city = geo.city || null;
       try { city = city ? decodeURIComponent(city) : null; } catch (_) {}
+      const rawIp = ipAddress(request) || null;
 
       const record = {
-        ip: anonymizeIp(ipAddress(request)),
+        ip: ANONYMIZE_IP ? anonymizeIp(rawIp) : rawIp,
         path: url.pathname,
         ua: request.headers.get('user-agent') || null,
         ref: request.headers.get('referer') || null,
