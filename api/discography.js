@@ -14,6 +14,8 @@ const ARTIST_ID = '3pihy4nJpAAhTgQJbn7awN';
 const INCLUDE_GROUPS = 'album,single';
 const TYPE_RANK = { album: 0, compilation: 1, single: 2 };
 
+let lastGood = null;
+
 // follow Spotify's `next` links until a paged list is exhausted
 async function allPages(firstUrl) {
   const items = [];
@@ -40,12 +42,14 @@ module.exports = async (req, res) => {
   try {
     const releases = await allPages(`/artists/${ARTIST_ID}/albums?include_groups=${INCLUDE_GROUPS}&limit=10`);
 
-    const albums = await Promise.all(releases.map(async r => {
+    // one release at a time: a parallel burst is what trips Spotify's rate limit
+    const albums = [];
+    for (const r of releases) {
       const album = await spotifyGet(`/albums/${r.id}`);
       const tracks = [...(album.tracks.items || [])];
       if (album.tracks.next) tracks.push(...await allPages(album.tracks.next));
-      return { album, tracks };
-    }));
+      albums.push({ album, tracks });
+    }
 
     const byKey = new Map();
     for (const { album, tracks } of albums) {
@@ -74,15 +78,21 @@ module.exports = async (req, res) => {
     }
 
     const tracks = [...byKey.values()];
-    if (!tracks.length) {
-      res.status(502).json({ error: 'Discography is unavailable right now' });
-      return;
-    }
+    if (!tracks.length) throw new Error('Spotify returned no tracks');
 
-    res.setHeader('Cache-Control', 's-maxage=21600, stale-while-revalidate=86400');
-    res.status(200).json({ releases: albums.length, tracks });
+    lastGood = { releases: albums.length, tracks };
+    res.setHeader('Cache-Control', 's-maxage=21600, stale-while-revalidate=604800');
+    res.status(200).json(lastGood);
   } catch (err) {
     console.error('discography error', err);
+    // a warm instance can still serve the last catalog it built
+    if (lastGood) {
+      res.setHeader('Cache-Control', 's-maxage=900');
+      res.status(200).json(lastGood);
+      return;
+    }
+    // cache the failure briefly so every page load doesn't re-hit a rate-limited API
+    res.setHeader('Cache-Control', 's-maxage=900');
     res.status(502).json({ error: 'Discography is unavailable right now' });
   }
 };
